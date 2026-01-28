@@ -1,0 +1,62 @@
+// server/prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String   
+  createdAt DateTime @default(now())
+  
+  notes     Note[]
+
+  @@map("users")
+}
+
+model Article {
+  id           String   @id @default(uuid())
+  title        String
+  url          String   @unique
+  
+  // Explicitly using the most efficient long-text type in Postgres
+  fullContent  String?  @db.Text 
+  summary      String?  @db.Text
+  
+  // Float is perfect for ranking, default to 0 to avoid null errors
+  curatorScore Float?   @default(0.0)
+  sourceName   String
+  category     String   
+  
+  publishedAt  DateTime
+  createdAt    DateTime @default(now())
+  
+  notes        Note[]
+
+  @@index([category]) // Crucial for your dashboard's "Group By" speed
+  @@index([publishedAt]) // Speeds up "This Week's News" queries
+  @@map("articles")
+}
+
+model Note {
+  id        String   @id @default(uuid())
+  content   String   @db.Text
+  
+  userId    String
+  articleId String
+  
+  // Standard relations without cascade
+  user      User     @relation(fields: [userId], references: [id])
+  article   Article  @relation(fields: [articleId], references: [id])
+  
+  createdAt DateTime @default(now())
+
+  @@map("notes")
+}
