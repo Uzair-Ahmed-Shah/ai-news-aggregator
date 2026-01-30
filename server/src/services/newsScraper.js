@@ -1,7 +1,29 @@
 const axios = require('axios');
 const cheerio = require('cheerio');
 const prisma = require('../lib/prisma.js')
+const llmProcessor = require('./llmProcessor.js')
 require('dotenv').config();
+
+const stopWords = new Set(["the", "and", "is", "of", "to", "in", "that", "it", "for", "on", "with", "as", "was", "at", "by", "an", "be", "this", "which", "or", "from", "but", "not", "are", "your", "all", "have", "new", "more", "one", "its", "we", "can", "said", "about", "like", "just", "time", "up", "out", "some", "what", "google", "microsoft", "openai", "artificial", "intelligence", "market", "stock", "data", "company", "model", "models"]);
+const topKeywords = (text) => {
+    const words = text.toLowerCase().replace(/[^\w\s]/g, ' ').split(/\s+/);
+
+    const frequency = {};
+    words.forEach(word => {
+        if (word.length > 4 && !stopWords.has(word)) { 
+            if (word in frequency){
+                frequency[word] += 1
+            }else {
+                frequency[word] = 1
+            }
+        }
+    });
+
+    const listFrequency = Object.entries(frequency)
+    const sortedFrequency = listFrequency.sort((a,b) => b[1] - a[1])
+    return sortedFrequency.slice(0, 5).map(item => item[0])
+
+}
 
 const calculateRelevanceScore = (text) => {
     const highValue = [
@@ -70,8 +92,8 @@ const fetchSaveNews = async () => {
                 searchIn: 'title,description',
                 sortBy: 'relevancy',
                 language: 'en',
-                from: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-                pageSize: 100
+                from: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(), // Fetch last 24h only
+                pageSize: 30
             },
             headers : { 'X-Api-Key': process.env.apiKey}
         })
@@ -88,9 +110,17 @@ const fetchSaveNews = async () => {
             
             if (result.success) {
                 try {
+                    const keywords = topKeywords(result.content);
+
                     const data = await prisma.article.upsert({
                         where : {url:article.url},
-                        update : {curatorScore: result.score},
+                        update : {
+                            curatorScore: result.score,
+                            keywords: keywords,
+                            fullContent: result.content,
+                            summary: article.description || "",
+                            title: article.title || "No Title"
+                        },
                         create:{
                             title: article.title || "No Title",
                             url: article.url,
@@ -99,7 +129,8 @@ const fetchSaveNews = async () => {
                             sourceName: article.source.name || "",
                             publishedAt : new Date(article.publishedAt),
                             curatorScore:result.score,
-                            category: "AI"
+                            category: "AI",
+                            keywords: keywords
                         }
                     });
                     savedCount += 1
@@ -110,7 +141,42 @@ const fetchSaveNews = async () => {
             }
         }
 
-        console.log(`Fetching and Saving complete, got ${savedCount} articles.`)
+                console.log(`Fetching and Saving complete, got ${savedCount} articles.`)
+
+        if (savedCount > 0) {
+            console.log("Analysis for top articles.");
+            
+            await new Promise(r => setTimeout(r, 2000));
+            const candidates = await prisma.article.findMany({
+                where: {
+                    category: "AI", 
+                    curatorScore: { gt: 5 },
+                    createdAt: { gt: new Date(Date.now() - 24 * 60 * 60 * 1000) }
+                },
+                orderBy: { curatorScore: 'desc' },
+                take: 10 
+            });
+
+            if (candidates.length > 0) {
+                console.log(`${candidates.length} articles, processing in batches.`);
+                
+                const batch1 = candidates.slice(0, 3);
+                const batch2 = candidates.slice(3, 6);
+                const batch3 = candidates.slice(6, 10);
+
+                await llmProcessor.processBatch(batch1);
+
+                if (batch2.length > 0) {
+                    await llmProcessor.processBatch(batch2);
+                }
+                if (batch3.length > 0) {
+                    await llmProcessor.processBatch(batch3);
+                }
+                
+            } else {
+                console.log("No candidates met the threshold for AI processing.");
+            }
+        }
 
     }catch (err) {
         console.error("Scrape Failed:", err.message);
