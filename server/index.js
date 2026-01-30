@@ -47,6 +47,15 @@ app.use('/api/auth', authRoutes)
 
 // })
 
+const { runTestScrape } = require('./src/services/newsScraper');
+
+// Test Route
+app.get('/test-scraper', async (req, res) => {
+    runTestScrape(); // Run in background
+    res.send("Scraper started! Check your VS Code terminal.");
+});
+
+
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 })
