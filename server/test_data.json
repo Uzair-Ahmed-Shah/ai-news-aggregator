@@ -1,0 +1,28 @@
+[
+  {
+    "id": "policy-signal-2",
+    "title": "US Copyright Office denies copyright for AI-generated images in landmark ruling",
+    "summary": [
+      "The US Copyright Office rejected artist Kris Kashtanova's appeal for copyright protection on AI-generated artwork in 'Zarya of the Dawn', maintaining that only human-authored elements qualify for protection.",
+      "This creates a binding legal precedent distinguishing protected human input from AI-generated output, shaping how intellectual property law applies to generative AI tools.",
+      "The decision leaves unresolved questions about hybrid human-AI creations and may influence pending global copyright policy debates."
+    ],
+    "category": "Policy",
+    "curatorScore": 92,
+    "confidence": 0.95,
+    "reasoning": "High novelty and impact as first binding precedent, but some uncertainty remains about mixed authorship cases."
+  },
+  {
+    "id": "tech-deep-3",
+    "title": "Google DeepMind publishes technical details on Gemini 1.5 Pro's architectural advances",
+    "summary": [
+      "Google released Gemini 1.5 Pro's technical report revealing a Mixture-of-Experts architecture with 10M-token context window and 99% recall in long-context retrieval tests.",
+      "The architectural choices and performance metrics set new benchmarks for efficient large-scale model inference, particularly for code and long-document applications.",
+      "While technically significant, real-world impact depends on actual deployment costs and accessibility beyond Google's ecosystem."
+    ],
+    "category": "Research",
+    "curatorScore": 84,
+    "confidence": 0.9,
+    "reasoning": "High technical substance but moderated impact score until deployment scale is proven."
+  }
+]
