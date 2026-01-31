@@ -48,3 +48,12 @@ model Note {
 
   @@map("notes")
 }
+
+
+model WeeklyReport {
+  id Int @id @default(autoincrement())
+  weekStartDate DateTime
+  weekEndDate DateTime
+  trends Json 
+  createdAt DateTime @default(now())
+}
