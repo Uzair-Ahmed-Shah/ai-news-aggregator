@@ -1,6 +1,7 @@
-const express =  require('express');;
+const express =  require('express');
 const cors = require('cors');
-const axios = require('axios');
+const prisma = require('./src/lib/prisma');
+const { fetchSaveNews } = require('./src/services/newsScraper');
 require('dotenv').config();
 
 const authRoutes = require('./src/routes/authRoutes.js')
@@ -13,49 +14,56 @@ app.use(express.json());
 
 
 app.get('/', (req, res) => {
-  res.send('Welcome to My News App API');
+  res.send('AI News Aggregator API is Running 🚀');
 });
 
+// Auth Routes
 app.use('/api/auth', authRoutes)
 
-// app.get('/api/news', async (req, res) => {
-//     try {
-//         const today = new Date();
-//         const lastWeek = new Date();
-//         lastWeek.setDate(today.getDate() - 7);
 
-//         const toDate = today.toISOString().split("T")[0];
-//         const fromDate = lastWeek.toISOString().split("T")[0];
+// --- NEW: News Routes ---
 
-//         const response = await axios.get('https://newsapi.org/v2/everything',{
-//             params: {
-//                 q : "(artificial intelligence) OR (AI) OR (machine learning) OR (deep learning) OR (ML) OR (neural networks)",
-//                 from: fromDate,
-//                 to: toDate,
-//                 language: 'en',
-//             },
-//             headers: {
-//                 'X-Api-Key': process.env.apiKey
-//             }
-//         })
+// 1. GET /api/news - Fetch articles from DB
+app.get('/api/news', async (req, res) => {
+    try {
+        const { filter } = req.query; // 'top', 'all'
 
-//         res.json(response.data.articles);
+        let whereClause = {};
+        
+        // Filter Logic
+        if (filter === 'high-signal') {
+            whereClause = { curatorScore: { gte: 70 } };
+        } else if (filter === 'scraped-today') {
+            whereClause = { 
+                createdAt: { gte: new Date(Date.now() - 24 * 60 * 60 * 1000) } 
+            };
+        }
 
-//     }catch (err) {
-//         res.status(500).json({ error: 'Failed to fetch news articles' });
-//     }
-
-// })
-
-const { runTestScrape } = require('./src/services/newsScraper');
-
-// Test Route
-app.get('/test-scraper', async (req, res) => {
-    runTestScrape(); // Run in background
-    res.send("Scraper started! Check your VS Code terminal.");
+        const articles = await prisma.article.findMany({
+            where: whereClause,
+            orderBy: { publishedAt: 'desc' },
+            take: 50 // Limit to 50 for the UI
+        });
+        
+        res.json(articles);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Db Error" });
+    }
 });
 
+// 2. POST /api/scrape - Trigger the Scraper + AI Manually
+app.post('/api/scrape', async (req, res) => {
+    try {
+        // Run in background (don't await) so UI doesn't freeze
+        fetchSaveNews().then(() => console.log("Background scrape finished"));
+        
+        res.json({ message: "Scraper started! Check logs & refresh in 60s." });
+    } catch (err) {
+        res.status(500).json({ error: "Failed to start scraper" });
+    }
+});
 
 app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-})
+  console.log(`Server running on port ${PORT}`);
+});

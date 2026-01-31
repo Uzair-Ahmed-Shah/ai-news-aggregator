@@ -143,19 +143,19 @@ const fetchSaveNews = async () => {
 
                 console.log(`Fetching and Saving complete, got ${savedCount} articles.`)
 
-        if (savedCount > 0) {
-            console.log("Analysis for top articles.");
+        // FORCE CHECK: Always look for unprocessed candidates, even if no NEW articles were saved.
+        console.log("Checking for unprocessed candidates for AI Analysis...");
             
-            await new Promise(r => setTimeout(r, 2000));
-            const candidates = await prisma.article.findMany({
-                where: {
-                    category: "AI", 
-                    curatorScore: { gt: 5 },
-                    createdAt: { gt: new Date(Date.now() - 24 * 60 * 60 * 1000) }
-                },
-                orderBy: { curatorScore: 'desc' },
-                take: 10 
-            });
+        await new Promise(r => setTimeout(r, 2000));
+        
+        const candidates = await prisma.article.findMany({
+            where: {
+                category: "AI",
+                curatorScore: { gt: 2 } // Process almost everything (Scores 3, 4, 5...)
+            },
+            orderBy: { publishedAt: 'desc' },
+            take: 10 
+        });
 
             if (candidates.length > 0) {
                 console.log(`${candidates.length} articles, processing in batches.`);
@@ -176,12 +176,31 @@ const fetchSaveNews = async () => {
             } else {
                 console.log("No candidates met the threshold for AI processing.");
             }
-        }
+            
+            await pruneLowQualityContent();
 
     }catch (err) {
         console.error("Scrape Failed:", err.message);
     }
 
+}
+
+const pruneLowQualityContent = async () => {
+    try {
+        console.log("Removing fullContent for non-candidate articles to save space");
+        const result = await prisma.article.updateMany({
+            where: {
+                category: "AI", 
+                curatorScore: { lte: 2 } 
+            },
+            data: {
+                fullContent: null 
+            }
+        });
+        console.log(`Pruned ${result.count} articles.`);
+    } catch (err) {
+        console.error("Pruning error:", err.message);
+    }
 }
 
 module.exports = { fetchSaveNews, calculateRelevanceScore, scrapeArticleContent }; 
