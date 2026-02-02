@@ -3,7 +3,7 @@ const cors = require('cors');
 const prisma = require('./src/lib/prisma');
 const cron = require('node-cron')
 const { fetchSaveNews } = require('./src/services/newsScraper');
-const { generateWeeklyReport } = require('./src/services/trendAnalyzer');
+const { getDashboardStats } = require('./src/services/statsAggregator');
 const authRoutes = require('./src/routes/authRoutes.js')
 require('dotenv').config();
 
@@ -21,14 +21,14 @@ cron.schedule('0 3 * * *', async () => {
   }
 })
 
-cron.schedule('0 4 * * 0', async () => {
-    console.log("📅 It's Sunday! Generating Weekly AI Trends Report...");
-    try {
-        await generateWeeklyReport();
-    } catch(err) {
-        console.error("Weekly Report Failed:", err.message);
-    }
-});
+// cron.schedule('0 4 * * 0', async () => {
+//     console.log("📅 It's Sunday! Generating Weekly AI Trends Report...");
+//     try {
+//         await generateWeeklyReport();
+//     } catch(err) {
+//         console.error("Weekly Report Failed:", err.message);
+//     }
+// });
 
 const app = express();
 const PORT = process.env.PORT || 8000;
@@ -87,6 +87,15 @@ app.post('/api/generate-report', async (req, res) => {
         res.json({ message: "Report generation started! Check server logs." });
     } catch (err) {
         res.status(500).json({ error: "Failed to start report generator" });
+    }
+});
+
+app.get('/api/stats', async (req, res) => {
+    try {
+        const stats = await getDashboardStats();
+        res.json(stats);
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to fetch dashboard stats' });
     }
 });
 

@@ -11,6 +11,7 @@ const openai = new OpenAI({
   },
 });
 
+// ...existing code...
 const SYSTEM_PROMPT = `
 You are a Senior Analyst identifying meaningful weekly trends in the global AI ecosystem.
 
@@ -71,6 +72,9 @@ Return a valid JSON object with two keys: "trends" and "articleSentiment".
 - Do not use hype, predictions, or opinionated language.
 - Use only the information present in the provided articles.
 `;
+
+
+module.exports = { generateWeeklyReport };
 
 const generateWeeklyReport = async () => {
     console.log("Starting weekly trend analysis.");

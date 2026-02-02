@@ -1,5 +1,5 @@
 const OpenAI = require("openai");
-const prisma = require("../lib/prisma"); // Adjust path if needed
+const prisma = require("../lib/prisma");
 require("dotenv").config();
 
 const openai = new OpenAI({
@@ -11,13 +11,12 @@ const openai = new OpenAI({
   },
 });
 
-// 1. Models Configuration
 const MODELS = {
-  PRIMARY: "tngtech/deepseek-r1t2-chimera:free",  // Fast, clean
-  FALLBACK: "tngtech/deepseek-r1t-chimera:free"   // Slower, reliable backup
+  PRIMARY: "tngtech/deepseek-r1t2-chimera:free",
+  FALLBACK: "tngtech/deepseek-r1t-chimera:free"
 };
 
-// 2. The "Senior Journalist" System Prompt
+
 const SYSTEM_PROMPT = `
 You are a Senior Journalist analyzing high-signal AI news across the global ecosystem.
 Your task is to identify developments that materially change how AI is built, governed, used, or experienced — not hype or speculation.
@@ -59,9 +58,22 @@ High: official documentation or multiple confirmations.
 Low: single-source or unclear attribution.
 
 ---
+### 2. CLASSIFICATION RULES
+
+**SENTIMENT** (Choose ONE):
+Sentiment refers to the article’s stance toward the primary development, not writing tone or emotional language.
+- **Positive:** Progress, breakthroughs, growth, successful launches.
+- **Neutral:** Factual reporting, analysis, balanced views.
+- **Critical:** Risks, failures, lawsuits, ethical concerns, job losses.
+
+**IMPACT TYPE** (Choose ONE):
+- **Social:** Affects people, jobs, education, or culture.
+- **Economic:** Market movements, funding, business strategy.
+- **Technological:** New models, hardware, benchmarks, paper releases.
+- **Environmental:** Energy usage, climate impact.
 
 ### CATEGORY
-Choose ONE: Research | Product | Industry | Economic/Labor | Policy | Society | Hardware
+Choose ONE: Research | Product | Industry | Policy | Society | Hardware
 
 ---
 
@@ -91,7 +103,9 @@ Return a valid JSON array. No markdown, no extra text.
       "Primary impact or consequence for people, industry, or governance.",
       "Scope, limitation, or uncertainty that frames its significance."
     ],
-    "category": "Policy",
+    "sentiment": "Positive",
+    "impactType": "Social",
+    "category": "Research",
     "curatorScore": 0-100,
     "confidence": 0-1,
     "reasoning": "One concise sentence explaining the main score tradeoff."
@@ -101,50 +115,42 @@ Return a valid JSON array. No markdown, no extra text.
 `;
 
 class LlmProcessor {
-  /**
-   * Main Entry Point: Processes a batch of articles with Fallback Logic
-   */
+
   async processBatch(articles) {
     if (!articles || articles.length === 0) return [];
 
     console.log(`🧠 AI Processing Batch: ${articles.length} articles...`);
 
-    // Prepare Data for Prompt
     const promptData = articles.map(a => ({
       id: a.id,
       title: a.title,
-      // Provide first 1500 chars of context (User requested increase from 1000 suitable for lengthy intros)
       content: (a.summary || a.fullContent || "").substring(0, 1400) 
     }));
 
     let results = null;
 
-    // 1️⃣ Try PRIMARY Model
     try {
       results = await this.callLLM(MODELS.PRIMARY, promptData);
-      console.log(`✅ Success with PRIMARY model (${MODELS.PRIMARY})`);
+      console.log(`Success with PRIMARY model (${MODELS.PRIMARY})`);
     } catch (err) {
       console.warn(`⚠️ PRIMARY model failed: ${err.message}. Switching to FALLBACK...`);
-      
-      // 2️⃣ Try FALLBACK Model
+
       try {
         results = await this.callLLM(MODELS.FALLBACK, promptData);
-        console.log(`✅ Success with FALLBACK model (${MODELS.FALLBACK})`);
+        console.log(`Success with FALLBACK model (${MODELS.FALLBACK})`);
       } catch (fallbackErr) {
         console.error(`❌ BOTH models failed. Skipping batch. Error: ${fallbackErr.message}`);
         return [];
       }
     }
 
-    // 3️⃣ Update Database
+    
     if (results) {
       await this.updateDatabase(results);
     }
   }
 
-  /**
-   * Helper: Calls OpenRouter and Parses JSON
-   */
+  
   async callLLM(modelName, data) {
     const completion = await openai.chat.completions.create({
       model: modelName,
@@ -160,15 +166,11 @@ class LlmProcessor {
     return this.robustJSONParse(rawOutput);
   }
 
-  /**
-   * Helper: Robust JSON Parser (handles markdown & chatter)
-   */
+  
   robustJSONParse(text) {
     try {
       let jsonString = text.trim();
-      // Remove chatter before/after JSON array
       jsonString = jsonString.replace(/^[^{[]*/, '').replace(/[^}\]]*$/, '');
-      // Remove markdown code blocks
       jsonString = jsonString.replace(/```json/g, '').replace(/```/g, '');
       
       return JSON.parse(jsonString);
@@ -177,31 +179,26 @@ class LlmProcessor {
     }
   }
 
-  /**
-   * Helper: Writes Back to DB
-   */
+  
   async updateDatabase(results) {
     console.log(`💾 Saving ${results.length} analyzed articles to DB...`);
     
-    for (const res of results) {
-      // Find the article to ensure it exists
-      // Note: We'll join the bullet points into a single string for the standard 'summary' field
-      // Or we can simple store the first point. 
-      // Let's store the full array as a joined string for now.
+    for (const elem of results) {
       
-      const combinedSummary = Array.isArray(res.summary) ? res.summary.join("\n• ") : res.summary;
+      
+      const combinedSummary = Array.isArray(elem.summary) ? elem.summary.join("\n• ") : elem.summary;
 
       await prisma.article.update({
-        where: { id: res.id },
+        where: { id: elem.id },
         data: {
-          title: res.title, // AI cleaned title
+          title: elem.title,
           summary: "• " + combinedSummary,
-          curatorScore: res.curatorScore,
-          category: res.category,
-          // We can add 'reasoning' to keywords or a new field later
-          keywords: { push: `AI_SCORE_${res.curatorScore}` } 
+          curatorScore: elem.curatorScore,
+          category: elem.category,
+          sentiment: elem.sentiment,
+          impactType: elem.impactType
         }
-      }).catch(err => console.error(`Failed to update article ${res.id}: ${err.message}`));
+      }).catch(err => console.error(`Failed to update article ${elem.id}: ${err.message}`));
     }
   }
 }
