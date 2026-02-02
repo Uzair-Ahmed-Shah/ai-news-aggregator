@@ -27,12 +27,15 @@ model Article {
   summary      String?  @db.Text
   curatorScore Float?   @default(0.0)
   sourceName   String
-  category     String   
-  keywords     String[] @default([])
+  category     String
+  sentiment    String?
+  impactType   String?
   publishedAt  DateTime
   createdAt    DateTime @default(now())
   notes        Note[]
   @@index([category])
+  @@index([sentiment])
+  @@index([impactType])
   @@index([publishedAt])
   @@map("articles")
 }
@@ -47,4 +50,13 @@ model Note {
   createdAt DateTime @default(now())
 
   @@map("notes")
+}
+
+
+model WeeklyReport {
+  id Int @id @default(autoincrement())
+  weekStartDate DateTime
+  weekEndDate DateTime
+  trends Json 
+  createdAt DateTime @default(now())
 }

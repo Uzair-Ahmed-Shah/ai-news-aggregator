@@ -4,26 +4,6 @@ const prisma = require('../lib/prisma.js')
 const llmProcessor = require('./llmProcessor.js')
 require('dotenv').config();
 
-const stopWords = new Set(["the", "and", "is", "of", "to", "in", "that", "it", "for", "on", "with", "as", "was", "at", "by", "an", "be", "this", "which", "or", "from", "but", "not", "are", "your", "all", "have", "new", "more", "one", "its", "we", "can", "said", "about", "like", "just", "time", "up", "out", "some", "what", "google", "microsoft", "openai", "artificial", "intelligence", "market", "stock", "data", "company", "model", "models"]);
-const topKeywords = (text) => {
-    const words = text.toLowerCase().replace(/[^\w\s]/g, ' ').split(/\s+/);
-
-    const frequency = {};
-    words.forEach(word => {
-        if (word.length > 4 && !stopWords.has(word)) { 
-            if (word in frequency){
-                frequency[word] += 1
-            }else {
-                frequency[word] = 1
-            }
-        }
-    });
-
-    const listFrequency = Object.entries(frequency)
-    const sortedFrequency = listFrequency.sort((a,b) => b[1] - a[1])
-    return sortedFrequency.slice(0, 5).map(item => item[0])
-
-}
 
 const calculateRelevanceScore = (text) => {
     const highValue = [
@@ -110,13 +90,11 @@ const fetchSaveNews = async () => {
             
             if (result.success) {
                 try {
-                    const keywords = topKeywords(result.content);
 
                     const data = await prisma.article.upsert({
                         where : {url:article.url},
                         update : {
                             curatorScore: result.score,
-                            keywords: keywords,
                             fullContent: result.content,
                             summary: article.description || "",
                             title: article.title || "No Title"
@@ -130,7 +108,6 @@ const fetchSaveNews = async () => {
                             publishedAt : new Date(article.publishedAt),
                             curatorScore:result.score,
                             category: "AI",
-                            keywords: keywords
                         }
                     });
                     savedCount += 1
@@ -143,7 +120,6 @@ const fetchSaveNews = async () => {
 
                 console.log(`Fetching and Saving complete, got ${savedCount} articles.`)
 
-        // FORCE CHECK: Always look for unprocessed candidates, even if no NEW articles were saved.
         console.log("Checking for unprocessed candidates for AI Analysis...");
             
         await new Promise(r => setTimeout(r, 2000));
@@ -151,9 +127,9 @@ const fetchSaveNews = async () => {
         const candidates = await prisma.article.findMany({
             where: {
                 category: "AI",
-                curatorScore: { gt: 2 } // Process almost everything (Scores 3, 4, 5...)
+                curatorScore: { gt: 2 } 
             },
-            orderBy: { publishedAt: 'desc' },
+            orderBy: { curatorScore: 'desc' },
             take: 10 
         });
 
