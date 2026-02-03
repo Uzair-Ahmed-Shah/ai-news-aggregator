@@ -21,7 +21,7 @@ const getStats = async () => {
             where : {sentiment : {not : null}},
         })
 
-        const caegorySentiment = await prisma.article.groupBy({
+        const categorySentiment = await prisma.article.groupBy({
             by : ['category', "sentiment"],
             _count: {all : true},
             where : {
