@@ -2,13 +2,14 @@ const express =  require('express');
 const cors = require('cors');
 const prisma = require('./src/lib/prisma');
 const cron = require('node-cron')
-const { fetchSaveNews } = require('./src/services/newsScraper');
-const { getDashboardStats } = require('./src/services/statsAggregator');
+const { fetchSaveNews, processArticles } = require('./src/services/newsScraper');
+const { getStats } = require('./src/services/statsAggregator');
 const authRoutes = require('./src/routes/authRoutes.js')
 require('dotenv').config();
 
 
-console.log('Using node-cron fro scheduling')
+
+console.log('Using node-cron for scheduling')
 
 cron.schedule('0 3 * * *', async () => {
   console.log('Waking up cron at 3am to run the pipeline - fetchSaveNews')

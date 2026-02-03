@@ -73,7 +73,7 @@ const fetchSaveNews = async () => {
                 sortBy: 'relevancy',
                 language: 'en',
                 from: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(), // Fetch last 24h only
-                pageSize: 30
+                pageSize: 40
             },
             headers : { 'X-Api-Key': process.env.apiKey}
         })
@@ -118,19 +118,30 @@ const fetchSaveNews = async () => {
             }
         }
 
-                console.log(`Fetching and Saving complete, got ${savedCount} articles.`)
+        await pruneLowQualityContent()
 
-        console.log("Checking for unprocessed candidates for AI Analysis...");
-            
-        await new Promise(r => setTimeout(r, 2000));
+        console.log(`Fetching and Saving complete, got ${savedCount} articles.`)
         
+    }catch (err) {
+        console.error("Scrape Failed:", err.message);
+    }
+
+}
+
+const processArticles = async (size = 10) => {
+    console.log("Looking for articles")
+
+    try{
         const candidates = await prisma.article.findMany({
             where: {
                 category: "AI",
                 curatorScore: { gt: 2 } 
             },
-            orderBy: { curatorScore: 'desc' },
-            take: 10 
+            orderBy: [
+                { curatorScore: 'desc' },
+                { publishedAt: 'desc' }
+            ],
+            take: size 
         });
 
             if (candidates.length > 0) {
@@ -153,12 +164,12 @@ const fetchSaveNews = async () => {
                 console.log("No candidates met the threshold for AI processing.");
             }
             
-            await pruneLowQualityContent();
+            return candidates.length;
 
-    }catch (err) {
-        console.error("Scrape Failed:", err.message);
+    }catch (err){
+        console.log(`Processing Error: ${err}`)
+        return 0;
     }
-
 }
 
 const pruneLowQualityContent = async () => {
@@ -179,4 +190,4 @@ const pruneLowQualityContent = async () => {
     }
 }
 
-module.exports = { fetchSaveNews, calculateRelevanceScore, scrapeArticleContent }; 
+module.exports = { fetchSaveNews, processArticles, calculateRelevanceScore, scrapeArticleContent }; 
