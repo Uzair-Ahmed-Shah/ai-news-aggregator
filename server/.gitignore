@@ -1,2 +1,9 @@
 node_modules
 .env
+
+# Test & Seed Scripts
+audit_db.js
+seed_historical_data.js
+test_ai_pipeline.js
+test_data.json
+

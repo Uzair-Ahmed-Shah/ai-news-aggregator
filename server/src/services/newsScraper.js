@@ -9,7 +9,7 @@ const calculateRelevanceScore = (text) => {
     const highValue = [
         "neural", 'transformer', 'gpt', 'gemini', 'llm', 'generative', 'algorithm', 'openai', 
         'copilot', 'machine', 'learning', 'ml', 'llms', 'library', 'libraries','ai', 'artificial', 'intelligence', 'robot', 'robots', 'bot', 'bots', 'agent', 'agents',
-         'automation'
+         'automation', 'siri', 'claude', 'anthropic'
     ]
     const lowValue = ["football", 'premier league', 'soccer', 'cricket', 'deal', 'shopping']
 

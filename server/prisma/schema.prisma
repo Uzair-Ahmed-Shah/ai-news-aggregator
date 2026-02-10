@@ -16,6 +16,8 @@ model User {
   password  String   
   createdAt DateTime @default(now())
   notes     Note[]
+  likes         ArticleLike[]
+  savedArticles SavedArticle[]
   @@map("users")
 }
 
@@ -25,6 +27,7 @@ model Article {
   url          String   @unique
   fullContent  String?  @db.Text 
   summary      String?  @db.Text
+  deepAnalysis String?   @db.Text
   curatorScore Float?   @default(0.0)
   sourceName   String
   category     String
@@ -32,12 +35,41 @@ model Article {
   impactType   String?
   publishedAt  DateTime
   createdAt    DateTime @default(now())
+  likesCount     Int       @default(0)
   notes        Note[]
+  savedBy      SavedArticle[]
+  likes        ArticleLike[]
   @@index([category])
   @@index([sentiment])
   @@index([impactType])
   @@index([publishedAt])
   @@map("articles")
+}
+
+model ArticleLike {
+  id        String   @id @default(uuid())
+  userId    String
+  articleId String
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id])
+  article   Article  @relation(fields: [articleId], references: [id])
+
+  @@unique([userId, articleId])
+  @@map("article_likes")
+}
+
+model SavedArticle {
+  id        String   @id @default(uuid())
+  userId    String
+  articleId String
+  savedAt   DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id])
+  article   Article  @relation(fields: [articleId], references: [id])
+
+  @@unique([userId, articleId])
+  @@map("saved_articles")
 }
 
 model Note {

@@ -60,20 +60,22 @@ Low: single-source or unclear attribution.
 ---
 ### 2. CLASSIFICATION RULES
 
-**SENTIMENT** (Choose ONE):
+**SENTIMENT** (Choose ONE STRICTLY - DO NOT INVENT NEW TYPES):
 Sentiment refers to the article’s stance toward the primary development, not writing tone or emotional language.
 - **Positive:** Progress, breakthroughs, growth, successful launches.
 - **Neutral:** Factual reporting, analysis, balanced views.
 - **Critical:** Risks, failures, lawsuits, ethical concerns, job losses.
 
-**IMPACT TYPE** (Choose ONE):
+**IMPACT TYPE** (Choose ONE STRICTLY - DO NOT INVENT NEW TYPES):
 - **Social:** Affects people, jobs, education, or culture.
-- **Economic:** Market movements, funding, business strategy.
+- **Economic:** Market, funding, business strategy.
 - **Technological:** New models, hardware, benchmarks, paper releases.
 - **Environmental:** Energy usage, climate impact.
+- **Political:** Law, geopolitics, sovereignty, regulation.
 
-### CATEGORY
-Choose ONE: Research | Product | Industry | Policy | Society | Hardware
+
+**CATEGORY** (Choose ONE STRICTLY - DO NOT INVENT NEW TYPES)
+- Research | Product | Business | Policy | Security | Ethics | Society | Hardware
 
 ---
 
@@ -124,7 +126,7 @@ class LlmProcessor {
     const promptData = articles.map(a => ({
       id: a.id,
       title: a.title,
-      content: (a.summary || a.fullContent || "").substring(0, 1400) 
+      content: (a.fullContent || a.summary || "").substring(0, 2500) 
     }));
 
     let results = null;
