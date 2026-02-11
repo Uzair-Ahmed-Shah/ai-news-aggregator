@@ -14,7 +14,7 @@ const authenticateToken = (req, res, next) => {
             return res.status(403).json({ "error": "Invalid or expired token" })
         }
         else{
-            req.userData = decoded;
+            req.user = decoded; 
             next(); 
         }
     })
@@ -23,3 +23,5 @@ const authenticateToken = (req, res, next) => {
         return res.status(401).json({"message": "Authentication Failed"})
     }
 }
+
+module.exports = { authenticateToken };
