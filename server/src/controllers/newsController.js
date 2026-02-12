@@ -59,7 +59,7 @@ const getTopArticle = async (req, res) => {
          const topArticle = await prisma.article.findFirst({
              where: {
                  publishedAt: { gte: twentyFourHoursAgo },
-                 curatorScore: { gt: 0 } 
+                 curatorScore: { gte: 0 }
              },
              orderBy: {
                  curatorScore: 'desc'
