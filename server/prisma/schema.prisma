@@ -27,7 +27,8 @@ model Article {
   url          String   @unique
   fullContent  String?  @db.Text 
   summary      String?  @db.Text
-  deepAnalysis String?   @db.Text
+  deepSummary  String?  @db.Text
+  imageUrl     String?
   curatorScore Float?   @default(0.0)
   sourceName   String
   category     String
