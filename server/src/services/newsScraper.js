@@ -97,13 +97,15 @@ const fetchSaveNews = async () => {
                             curatorScore: result.score,
                             fullContent: result.content,
                             summary: article.description || "",
-                            title: article.title || "No Title"
+                            title: article.title || "No Title",
+                            imageUrl: article.urlToImage || null
                         },
                         create:{
                             title: article.title || "No Title",
                             url: article.url,
                             fullContent:result.content,
                             summary:article.description || "",
+                            imageUrl: article.urlToImage || null,
                             sourceName: article.source.name || "",
                             publishedAt : new Date(article.publishedAt),
                             curatorScore:result.score,
