@@ -63,24 +63,27 @@ const scrapeArticleContent = async (url) => {
     }
 }
 
-const fetchSaveNews = async () => {
+const fetchSaveNews = async (days = 1, pageSize = 40) => {
     try {
+        console.log(`Searching NewsAPI for articles from the last ${days} days...`);
         const response = await axios.get('https://newsapi.org/v2/everything', {
             params : {
-                q: '("Artificial Intelligence" OR "Machine Learning" OR "Deep Learning" OR "Neural Networks" OR "Large Language Models" OR "Generative AI") NOT (football OR soccer OR "translated by AI")',
-                excludeDomains: 'yahoo.com,consent.yahoo.com',
-                searchIn: 'title,description',
+                q: 'AI OR "Artificial Intelligence" OR "Machine Learning"',
                 sortBy: 'relevancy',
                 language: 'en',
-                from: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(), // Fetch last 24h only
-                pageSize: 40
+                from: new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString(), 
+                pageSize: pageSize
             },
-            headers : { 'X-Api-Key': process.env.apiKey}
+            headers : { 'X-Api-Key': process.env.apiKey || process.env.NEWS_API_KEY}
         })
 
+        if (!response.data || !response.data.articles) {
+            console.log("⚠️ No articles found in NewsAPI response.");
+            return;
+        }
+
         const articles = response.data.articles;
-        // const results = [];
-        // const discarded = [];
+        console.log(`Found ${articles.length} potential articles. Starting scrape...`);
         let savedCount = 0;
 
         for (const article of articles) {
@@ -147,20 +150,44 @@ const processArticles = async (size = 10) => {
         });
 
             if (candidates.length > 0) {
-                console.log(`${candidates.length} articles, processing in batches.`);
+                console.log(`Found ${candidates.length} articles, processing in batches of 5...`);
                 
-                const batch1 = candidates.slice(0, 3);
-                const batch2 = candidates.slice(3, 6);
-                const batch3 = candidates.slice(6, 10);
-
-                await llmProcessor.processBatch(batch1);
-
-                if (batch2.length > 0) {
-                    await llmProcessor.processBatch(batch2);
+                for (let i = 0; i < candidates.length; i += 5) {
+                    const batch = candidates.slice(i, i + 5);
+                    console.log(`Processing batch ${Math.floor(i / 5) + 1}`);
+                    
+                    try {
+                        await llmProcessor.processBatch(batch);
+                        
+                        // 1.5 minute gap between requests
+                        console.log("Waiting 90 seconds...");
+                        await new Promise(res => setTimeout(res, 90000));
+                    } catch (err) {
+                        console.error(`Batch failed: ${err.message}`);
+                    }
                 }
-                if (batch3.length > 0) {
-                    await llmProcessor.processBatch(batch3);
+                
+                console.log("Identifying top article for deep dive...");
+
+                const topArticle = await prisma.article.findFirst({
+                    where: {
+                        publishedAt: { gte: new Date(Date.now() - 24 * 60 * 60 * 1000) }, 
+                        curatorScore: { gte: 75 } 
+                    },
+                    orderBy: { curatorScore: 'desc' }
+                });
+
+                if (topArticle) {
+                    if (!topArticle.deepSummary) {
+                        console.log(`Generating deep dive for: ${topArticle.title}`);
+                        await llmProcessor.generateDeepAnalysis(topArticle);
+                    } else {
+                        console.log(`Top article already has deep dive: ${topArticle.title}`);
+                    }
+                } else {
+                    console.log("No article met the threshold (score >= 75) for deep dive.");
                 }
+                // ---------------------------------------------------
                 
             } else {
                 console.log("No candidates met the threshold for AI processing.");
@@ -192,4 +219,4 @@ const pruneLowQualityContent = async () => {
     }
 }
 
-module.exports = { fetchSaveNews, processArticles, calculateRelevanceScore, scrapeArticleContent }; 
+module.exports = { fetchSaveNews, processArticles, calculateRelevanceScore, scrapeArticleContent };
