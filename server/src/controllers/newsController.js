@@ -5,47 +5,28 @@ const { getStats } = require('../services/statsAggregator');
 
 const getNewsFeed = async (req, res) => {
     try {
-        let { filter, category, days } = req.query;
-        if (days){
-            days = parseInt(days)
-        }
-        let whereClause = {};
-        
-
-        const dateDiff = days ? days:7
-        const startDate = new Date()
-        startDate.setDate(startDate.getDate() - dateDiff)
-
-        if (filter === 'scraped_today') {
-            whereClause.createdAt = { gte: new Date(Date.now() - 24 * 60 * 60 * 1000) };
-        } else {
-            whereClause.publishedAt = { gte: startDate };
-        }
-
-        if (category && category !== 'All') {
-            whereClause.category = category;
-        }else if (category && category ==="All") {
-            whereClause.category = {not : "AI"}
-        }
-
-        if (filter === 'high_signal') {
-            whereClause.curatorScore = { gte: 70 };
-        }
-        else {
-            whereClause.curatorScore = { gte: 30 };
-        }
+        const sevenDaysAgo = new Date();
+        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
         const articles = await prisma.article.findMany({
-            where: whereClause,
-            orderBy: [
-                { publishedAt: 'desc' },
-                { curatorScore: 'desc' }
-                
-            ],
-            take: 100
+            where: {
+                publishedAt: { gte: sevenDaysAgo },
+                curatorScore: { gte: 30 },
+                category: { not: "AI" } 
+            },
+            take: 300 
+        });
+
+        const sortedArticles = articles.sort((a, b) => {
+            const dateA = new Date(a.publishedAt).toISOString().split('T')[0];
+            const dateB = new Date(b.publishedAt).toISOString().split('T')[0];
+            if (dateA !== dateB) {
+                return dateB.localeCompare(dateA);
+            }
+            return (b.curatorScore || 0) - (a.curatorScore || 0);
         });
         
-        return res.json(articles);
+        return res.json({ articles :sortedArticles });
     } catch (err) {
         console.error(err);
         return res.status(500).json({ error: "Db Error" });
