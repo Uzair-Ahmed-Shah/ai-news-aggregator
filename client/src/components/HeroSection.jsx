@@ -6,8 +6,13 @@ import { useNavigate} from 'react-router-dom'
 
 const HeroSection = ({ article, isDeepdiveAvailable }) => {
    const navigate = useNavigate();
-   const categoryImages = {'Research' : 'https://drive.google.com/thumbnail?id=15ZTr66kfFjQiYLaRb--2lmVUvChaR3In',
-      'Product': 'https://drive.google.com/thumbnail?id=1BQFgbOneEXU8DaWEQXHgdDb4iDQcQsns'}
+   const categoryImages = {'Research' : 'https://drive.google.com/thumbnail?id=15ZTr66kfFjQiYLaRb--2lmVUvChaR3In&sz=s3000',
+                           'Product': 'https://drive.google.com/thumbnail?id=1BQFgbOneEXU8DaWEQXHgdDb4iDQcQsns&sz=s3000',
+                           'Policy': 'https://drive.google.com/thumbnail?id=1beoiWtKpc2aroXJetfpBSD6Njaq9yOlE&sz=s3000',
+                           'Business':'https://drive.google.com/thumbnail?id=1R5Zy5PotFR4umkcRorZ9vvVTn8Tv_YTX&sz=s3000',
+                           'Ethics': 'https://drive.google.com/thumbnail?id=1mEKtluRe_Vt2LEIMPWppySe57nYi9p_7&sz=s3000',
+                           'Security': 'https://drive.google.com/thumbnail?id=1LM6UVjouabE57sqQawAthjOJRppNu3R1&sz=s3000'
+                        }
 
    if (!article){
       return null
