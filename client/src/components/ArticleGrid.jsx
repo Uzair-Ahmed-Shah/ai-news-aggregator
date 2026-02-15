@@ -1,9 +1,22 @@
 import React from 'react';
 import { ArrowUpRight, Clock, ShieldCheck } from 'lucide-react';
-import { formatDistanceToNow } from 'date-fns';
+// import { formatDistanceToNow, differenceInCalendarDays } from 'date-fns';
+
+const categoryImages = {'Research' : 'https://drive.google.com/thumbnail?id=15ZTr66kfFjQiYLaRb--2lmVUvChaR3In&sz=s3000',
+                           'Product': 'https://drive.google.com/thumbnail?id=1Jk3wpg_n7ktD0xnKfws82vbNr5JV4kzd&sz=s3000',
+                           'Policy': 'https://drive.google.com/thumbnail?id=1beoiWtKpc2aroXJetfpBSD6Njaq9yOlE&sz=s3000',
+                           'Business':'https://drive.google.com/thumbnail?id=1R5Zy5PotFR4umkcRorZ9vvVTn8Tv_YTX&sz=s3000',
+                           'Ethics': 'https://drive.google.com/thumbnail?id=1mEKtluRe_Vt2LEIMPWppySe57nYi9p_7&sz=s3000',
+                           'Security': 'https://drive.google.com/thumbnail?id=1LM6UVjouabE57sqQawAthjOJRppNu3R1&sz=s3000',
+                           'Society' : "https://drive.google.com/thumbnail?id=1A7lNqARtYM9B4btcysurEsCdHolrcD9Y&sz=s3000",
+                           "Hardware" : 'https://drive.google.com/thumbnail?id=1BQFgbOneEXU8DaWEQXHgdDb4iDQcQsns&sz=s3000'
+                        }
+
 
 const ArticleGrid = ({ articles }) => {
+    console.log("ArticleGrid received articles:", articles);
   if (!articles || articles.length === 0) return null;
+  console.log(articles)
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -15,7 +28,23 @@ const ArticleGrid = ({ articles }) => {
 };
 
 const ArticleCard = ({ article }) => {
-  const bgImage = article.imageUrl || "https://images.unsplash.com/photo-1620712943543-bcc4688e7485?q=80&w=800&auto=format&fit=crop";
+  const bgImage = article.imageUrl || categoryImages[article.category]
+  const getDayLabel = (dateString) => {
+    if (!dateString) return "Just now";
+
+    const todayStr = new Date().toISOString().split('T')[0];
+    const articleStr = new Date(dateString).toISOString().split('T')[0];
+
+    if (articleStr === todayStr) return "Today";
+    const date1 = new Date(todayStr);
+    const date2 = new Date(articleStr);
+    const diffTime = Math.abs(date1 - date2);
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays === 1) return "Yesterday";
+    return `${diffDays} days ago`;
+  };
+  
 
   return (
     <div className="group flex flex-col bg-[#0a0a0a] border border-white/5 hover:border-white/20 transition-all duration-300 rounded-sm overflow-hidden flex-1">
@@ -23,7 +52,7 @@ const ArticleCard = ({ article }) => {
         <img 
           src={bgImage} 
           alt={article.title}
-          className="w-full h-full object-cover grayscale opacity-70 group-hover:grayscale-0 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500"
+          className="w-full h-full object-cover  group-hover:grayscale-0 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500"
         />
         
         <div className="absolute top-3 left-3 flex gap-2">
@@ -42,7 +71,7 @@ const ArticleCard = ({ article }) => {
       <div className="p-5 flex flex-col flex-grow">
         <div className="flex items-center gap-2 text-[10px] text-gray-500 font-mono uppercase tracking-widest mb-3">
           <Clock size={12} />
-          <span>{article.publishedAt ? formatDistanceToNow(new Date(article.publishedAt)) : 'Just now'} ago</span>
+          <span>{getDayLabel(article.publishedAt)}</span>
           <span className="text-gray-800">•</span>
           <span className="text-gray-400">{article.sourceName || 'Unknown'}</span>
         </div>

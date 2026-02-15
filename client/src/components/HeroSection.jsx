@@ -7,11 +7,13 @@ import { useNavigate} from 'react-router-dom'
 const HeroSection = ({ article, isDeepdiveAvailable }) => {
    const navigate = useNavigate();
    const categoryImages = {'Research' : 'https://drive.google.com/thumbnail?id=15ZTr66kfFjQiYLaRb--2lmVUvChaR3In&sz=s3000',
-                           'Product': 'https://drive.google.com/thumbnail?id=1BQFgbOneEXU8DaWEQXHgdDb4iDQcQsns&sz=s3000',
+                           'Product': 'https://drive.google.com/thumbnail?id=1Jk3wpg_n7ktD0xnKfws82vbNr5JV4kzd&sz=s3000',
                            'Policy': 'https://drive.google.com/thumbnail?id=1beoiWtKpc2aroXJetfpBSD6Njaq9yOlE&sz=s3000',
                            'Business':'https://drive.google.com/thumbnail?id=1R5Zy5PotFR4umkcRorZ9vvVTn8Tv_YTX&sz=s3000',
                            'Ethics': 'https://drive.google.com/thumbnail?id=1mEKtluRe_Vt2LEIMPWppySe57nYi9p_7&sz=s3000',
-                           'Security': 'https://drive.google.com/thumbnail?id=1LM6UVjouabE57sqQawAthjOJRppNu3R1&sz=s3000'
+                           'Security': 'https://drive.google.com/thumbnail?id=1LM6UVjouabE57sqQawAthjOJRppNu3R1&sz=s3000',
+                           'Society' : "https://drive.google.com/thumbnail?id=1A7lNqARtYM9B4btcysurEsCdHolrcD9Y&sz=s3000",
+                           "Hardware" : 'https://drive.google.com/thumbnail?id=1BQFgbOneEXU8DaWEQXHgdDb4iDQcQsns&sz=s3000'
                         }
 
    if (!article){
@@ -21,7 +23,7 @@ const HeroSection = ({ article, isDeepdiveAvailable }) => {
    const bgImage = article.imageUrl || categoryImages[article.category]
 
    return (
-      <div className = 'min-h-[500px] relative h-[60vh] bg-black '>
+      <div className = 'min-h-[500px] relative h-[85vh] bg-black '>
          <img className = 'absolute inset-0 object-cover w-full h-full' src = {bgImage}/>
          <div className='absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent'></div>
          <div className="relative z-10 w-full max-w-7xl mx-auto px-6 pb-12 h-full flex items-end">
@@ -52,12 +54,15 @@ const HeroSection = ({ article, isDeepdiveAvailable }) => {
 
 
                   <div className="flex gap-3">
+                  {isDeepdiveAvailable && (
                      <button 
                         onClick={() => navigate(`/article/${article.id}`)}
                         className="bg-white text-black px-6 py-3 font-bold text-xs uppercase tracking-wider hover:bg-gray-200 transition flex items-center gap-2"
                      >
                         <Bookmark size={16} /> Deep Dive
                      </button>
+                  )}
+                     
 
                      <a 
                         href={article.url} 

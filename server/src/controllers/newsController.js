@@ -14,6 +14,7 @@ const getNewsFeed = async (req, res) => {
                 curatorScore: { gte: 30 },
                 category: { not: "AI" } 
             },
+            orderBy: { publishedAt: 'desc' },
             take: 300 
         });
 

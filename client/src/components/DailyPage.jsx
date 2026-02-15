@@ -32,6 +32,14 @@ const DailyPage = () => {
     fetchNews();
   }, [])
 
+
+  const deepDiveArticle = useMemo(() => {
+     if (allArticles.length > 0) {
+        return allArticles[0]; // Since backend sorts by Date > Score, the first one is THE one.
+     }
+     return null;
+  }, [allArticles]);
+
   const { visibleGridArticles, heroArticle, totalPages } = useMemo(() => {
     let filtered = allArticles;
 
@@ -60,10 +68,13 @@ const DailyPage = () => {
     return "All Time";
   }
 
+
+  const isDeepDive = heroArticle && deepDiveArticle && heroArticle.id === deepDiveArticle.id;
+
   return (
     <div className="min-h-screen bg-[#050505] text-gray-200 font-sans selection:bg-white selection:text-black">
       <Navbar />
-      <div className="sticky top-16 z-40 border-b border-white/10 bg-black/80 backdrop-blur-md">
+      <div className="sticky top-16 z-40 w-full border-b border-white/10 bg-black/40 backdrop-blur-md ">
         <div className="max-w-7xl mx-auto px-6 py-3 flex flex-col md:flex-row md:items-center justify-between gap-4">
            <div className="flex gap-6 text-xs uppercase tracking-widest overflow-x-auto no-scrollbar pb-2 md:pb-0">
              {categories.map((cat) => (
@@ -96,10 +107,10 @@ const DailyPage = () => {
            <p className="text-xs uppercase tracking-widest animate-pulse">Initializing Intelligence Feed...</p>
         </div>
       ) : (
-        <>
+        <div className='-mt-16 relative z-0'>
 
             {heroArticle ? (
-                <HeroSection article={heroArticle} />
+                <HeroSection article={heroArticle} isDeepdiveAvailable={isDeepDive}/>
             ) : (
                 <div className="h-64 flex items-center justify-center border-b border-white/10 text-gray-500 italic">
                     No intelligence found in this sector.
@@ -134,7 +145,7 @@ const DailyPage = () => {
                 </div>
                 <ArticleGrid articles={visibleGridArticles} />
             </main>
-        </>
+        </div>
 
 
       )}
