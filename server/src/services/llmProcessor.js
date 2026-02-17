@@ -6,13 +6,7 @@ require("dotenv").config();
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
-
-const feedModel = genAI.getGenerativeModel({
-  model: "gemini-3-flash-preview", 
-  systemInstruction: FEED_PROCESSING_PROMPT,
-  generationConfig: {
-    responseMimeType: "application/json",
-    responseSchema: {
+const feedSchema = {
         type: SchemaType.ARRAY,
         items: {
           type: SchemaType.OBJECT,
@@ -28,6 +22,22 @@ const feedModel = genAI.getGenerativeModel({
           required: ["id", "title", "summary", "sentiment", "impactType", "category", "curatorScore"]
         }
     }
+
+const primaryModel = genAI.getGenerativeModel({
+  model: "gemini-3-flash-preview", 
+  systemInstruction: FEED_PROCESSING_PROMPT,
+  generationConfig: {
+    responseMimeType: "application/json",
+    responseSchema: feedSchema
+  }
+});
+
+const fallbackModel = genAI.getGenerativeModel({
+  model: "gemini-2.5-pro", 
+  systemInstruction: FEED_PROCESSING_PROMPT,
+  generationConfig: {
+    responseMimeType: "application/json",
+    responseSchema: feedSchema
   }
 });
 
@@ -60,17 +70,32 @@ class LlmProcessor {
       content: (a.fullContent || a.summary || "").substring(0, 5000) 
     }));
 
+    let result;
     try {
-      const result = await feedModel.generateContent(JSON.stringify(promptData));
-      const responseText = result.response.text();
+      try {
+        const response = await primaryModel.generateContent(JSON.stringify(promptData));
+        result = response.response;
+      } catch (err) {
+        console.warn(`Primary Model Failed: ${err.message}. Switching to Fallback...`);
+        const response = await fallbackModel.generateContent(JSON.stringify(promptData));
+        result = response.response;
+      }
       
-      const parsedResults = JSON.parse(responseText);
+      const responseText = result.text();
+      let parsedResults;
+      try {
+          parsedResults = JSON.parse(responseText);
+      } catch (e) {
+          const cleanText = responseText.replace(/```json/g, '').replace(/```/g, '').trim();
+          parsedResults = JSON.parse(cleanText);
+      }
 
       if (parsedResults && Array.isArray(parsedResults)) {
          await this.updateDatabase(parsedResults);
       }
     } catch (err) {
-      console.error(`Gemini batch failed: ${err.message}`);
+      console.error(`ALL Models Failed: ${err.message}`);
+      throw err
     }
   }
 

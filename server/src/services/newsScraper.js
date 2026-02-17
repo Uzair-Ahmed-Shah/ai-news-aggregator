@@ -4,6 +4,15 @@ const prisma = require('../lib/prisma.js')
 const llmProcessor = require('./llmProcessor.js')
 require('dotenv').config();
 
+const cleanUrl = (url) => {
+    if (!url) return "";
+    try {
+        const urlObj = new URL(url);
+        return urlObj.origin + urlObj.pathname;
+    } catch (e) {
+        return url.split('?')[0];
+    }
+};
 
 const calculateRelevanceScore = (text) => {
     const highValue = [
@@ -38,14 +47,38 @@ const scrapeArticleContent = async (url) => {
 
         
         
-        $('article p, .content p, .post-content p, .entry-content p, #main-content p, .story-body p, .article-body p, .mw-body-content p, #firehose p, .intro p').each((index, element) => {
+        const selectors = [
+            'article p', '.richtext p', '#firehose p',
+            '.content p', '.post-content p', '.entry-content p', 
+            '#main-content p', '.story-body p', '.article-body p', 
+            '.mw-body-content p',  '.intro p','[itemprop="articleBody"] p',
+            'main p', 'section.body p', '.story p', 
+            '.article-text p', '.post-body p'
+        ];
+        
+        $(selectors.join(', ')).each((index, element) => {
             const text = $(element).text().trim()
             if (text.length > 50) { 
                  fullContent += text + '\n\n';
             }
         })
 
-        if (!fullContent) {
+        if (!fullContent || fullContent.length < 200) {
+            $('p, div').each((index, element) => {
+                const text = $(element).text().trim();
+                if (text.length > 80 && 
+                    !text.includes('Copyright') && 
+                    !text.includes('All rights reserved') &&
+                    !text.includes('allowed to prompt it')
+                ) { 
+                    if (!fullContent.includes(text)) {
+                         fullContent += text + '\n\n';
+                    }
+                }
+            });
+        }
+
+        if (!fullContent || fullContent.length < 100) {
              return { success: false, reason: "No content found (Selector mismatch)" };
         }
 
@@ -85,17 +118,33 @@ const fetchSaveNews = async (days = 1, pageSize = 40) => {
         const articles = response.data.articles;
         console.log(`Found ${articles.length} potential articles. Starting scrape...`);
         let savedCount = 0;
+        const seenUrls = new Set();
 
         for (const article of articles) {
-            console.log(`   Stats check: ${article.title.substring(0, 40)}...`);
+            const cleanedUrl = cleanUrl(article.url);
             
-            const result = await scrapeArticleContent(article.url);
+            if (seenUrls.has(cleanedUrl)) continue;
+            seenUrls.add(cleanedUrl);
+
+            console.log(`   Stats check: ${article.title.substring(0, 40)}...`);
+
+            const existing = await prisma.article.findUnique({
+                where: { url: cleanedUrl },
+                select: { id: true, fullContent: true }
+            });
+
+            if (existing && existing.fullContent && existing.fullContent.length > 500) {
+                console.log(`   Skipping (Already in DB with content)`);
+                continue;
+            }
+            
+            const result = await scrapeArticleContent(cleanedUrl);
             
             if (result.success) {
                 try {
 
                     const data = await prisma.article.upsert({
-                        where : {url:article.url},
+                        where : {url:cleanedUrl},
                         update : {
                             curatorScore: result.score,
                             fullContent: result.content,
@@ -105,7 +154,7 @@ const fetchSaveNews = async (days = 1, pageSize = 40) => {
                         },
                         create:{
                             title: article.title || "No Title",
-                            url: article.url,
+                            url: cleanedUrl,
                             fullContent:result.content,
                             summary:article.description || "",
                             imageUrl: article.urlToImage || null,
@@ -133,7 +182,7 @@ const fetchSaveNews = async (days = 1, pageSize = 40) => {
 
 }
 
-const processArticles = async (size = 10) => {
+const processArticles = async (size = 30) => {
     console.log("Looking for articles")
 
     try{
@@ -158,12 +207,26 @@ const processArticles = async (size = 10) => {
                     
                     try {
                         await llmProcessor.processBatch(batch);
-                        
-                        // 1.5 minute gap between requests
-                        console.log("Waiting 90 seconds...");
-                        await new Promise(res => setTimeout(res, 90000));
                     } catch (err) {
                         console.error(`Batch failed: ${err.message}`);
+                        
+                        if (err.message.includes("429") || err.message.includes("503")) {
+                            console.log("Rate limit hit. Waiting 60s extra before re-trying this batch...");
+                            await new Promise(res => setTimeout(res, 60000));
+                            try {
+                                console.log("Retrying batch...");
+                                await llmProcessor.processBatch(batch);
+                                console.log("Retry Successful.");
+                            } catch (retryErr) {
+                                console.error(`Retry failed: ${retryErr.message}`);
+                            }
+                        }
+                    }
+
+                    
+                    if (i + 5 < candidates.length) {
+                        console.log("Waiting 90 seconds...");
+                        await new Promise(res => setTimeout(res, 90000));
                     }
                 }
                 

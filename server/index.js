@@ -6,8 +6,6 @@ const authRoutes = require('./src/routes/authRoutes.js');
 const newsRoutes = require('./src/routes/newsRoutes.js');
 require('dotenv').config();
 
-let isQueueEmpty = false;
-
 console.log('Using node-cron for scheduling')
 
 cron.schedule('0 3 * * *', async () => {
@@ -22,28 +20,12 @@ cron.schedule('0 3 * * *', async () => {
 })
 
 cron.schedule('30 3 * * *', async () => {
-    console.log('3:30 AM: Running Analysis Batch 1');
+    console.log('3:30 AM: Running Intelligence Analysis Pipeline (LLM)');
     try {
-        const count = await processArticles(10);
-        if (count < 10) {
-            console.log("Queue empty or low. Will skip next batch.");
-            isQueueEmpty = true;
-        }
+        await processArticles(30);
+        console.log('LLM Analysis Pipeline completed.');
     } catch (err) {
-        console.log(`Batch 1 failed - ${err.message}`)
-    }
-})
-
-cron.schedule('30 4 * * *', async () => {
-    if (isQueueEmpty) {
-        console.log("Skipping Batch 2");
-        return;
-    }
-    console.log('4:30 AM: Running Analysis Batch 2');
-    try {
-        await processArticles(10);
-    } catch (err) {
-        console.log(`Batch 2 failed - ${err.message}`)
+        console.log(`LLM Analysis Pipeline failed - ${err.message}`)
     }
 })
 
