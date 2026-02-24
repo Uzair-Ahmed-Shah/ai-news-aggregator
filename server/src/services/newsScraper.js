@@ -85,7 +85,7 @@ const scrapeArticleContent = async (url) => {
         const introText = fullContent.substring(0, 1000)
         const score = calculateRelevanceScore(introText);
 
-        if (score < 2) {
+        if (score <= 2) {
             return { success: false, reason: `Low Relevance Score: ${score}` };
         }
 
@@ -273,7 +273,7 @@ const pruneLowQualityContent = async () => {
                 curatorScore: { lte: 2 } 
             },
             data: {
-                fullContent: null 
+                fullContent: "" 
             }
         });
         console.log(`Pruned ${result.count} articles.`);
