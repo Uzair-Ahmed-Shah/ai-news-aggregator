@@ -127,10 +127,14 @@ Do NOT use bullet points. Do NOT use headers like "Introduction" or "Conclusion.
 - **No Robot Speak:** Do not say "In this article..." or "The text mentions...". Just report the story directly.
 
 ### OUTPUT FORMAT
-Return the text as a single JSON object with a 'markdown' field containing the 3 paragraphs.
+Return the text as a single JSON object with a 'markdown' field containing the 3 paragraphs as an ARRAY of strings.
 
 {
-  "markdown": "Paragraph 1 text...\n\nParagraph 2 text...\n\nParagraph 3 text..."
+  "markdown": [
+    "Text of paragraph 1...",
+    "Text of paragraph 2...",
+    "Text of paragraph 3..."
+  ]
 }
 `;
 

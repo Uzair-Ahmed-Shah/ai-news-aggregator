@@ -6,6 +6,7 @@ const { authenticateToken } = require('../middleware/checkAuth');
 
 router.get('/news', newsController.getNewsFeed);
 router.get('/news/top', newsController.getTopArticle);
+router.get('/news/:id', newsController.getArticleById);
 router.get('/stats', newsController.dashboardStatsHandler);
 router.get('/reports', newsController.getWeeklyReports);
 

@@ -48,13 +48,30 @@ const getTopArticle = async (req, res) => {
              }
          });
  
-         return res.json(topArticle || null);
+         return res.json({ article: topArticle });
     } catch (err) {
-        console.log(err);
-        return res.status(500).json({ "error": "Db Error fetching Top Article" });
+        console.error(err);
+        return res.status(500).json({ error: "Db Error" });
     }
-};
+}
 
+const getArticleById = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const article = await prisma.article.findUnique({
+            where: { id: id }
+        });
+
+        if (!article) {
+            return res.status(404).json({ error: "Article not found" });
+        }
+
+        return res.json({ article });
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ error: "Db Error" });
+    }
+}
 
 const triggerScrape = async (req, res) => {
     try {
@@ -108,8 +125,6 @@ const getWeeklyReports = async (req, res) => {
     }
 };
 
-
-// --- AUTHENTICATED ROUTES ---
 
 const getSavedArticles = async (req, res) => {
     const userId = req.user?.id;
@@ -227,6 +242,7 @@ const toggleSave = async (req, res) => {
 
 module.exports = { 
     getNewsFeed, 
+    getArticleById,
     getTopArticle,
     triggerScrape, 
     processBatchAdmin,
