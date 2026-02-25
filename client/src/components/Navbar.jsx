@@ -1,8 +1,10 @@
 import React, {useState} from 'react'
+import { Link, useLocation } from 'react-router-dom';
 import { Menu, Search, User, LogOut, Bookmark, Activity } from 'lucide-react';
 
-const Navbar = () => {
+const Navbar = ({ deepDiveId }) => {
     const [isDropdownOpen, setDropdownOpen] = useState(false);
+    const location = useLocation();
     const user = {name : 'Uzair', avatar : null}
 
   return (
@@ -18,11 +20,23 @@ const Navbar = () => {
                 </div>
             </div>
 
-            <div className = 'hidden md:flex gap-8 text-sm font-medium text-gray-400'>
-                <a href="#" className="text-white transition hover:text-gray-300">Daily</a>
-                <a href="#" className="transition hover:text-white">Weekly</a>
-                <a href="#" className="transition hover:text-white">Deep Dives</a>
-                <a href="#" className="transition hover:text-white">Archive</a>
+            <div className='hidden md:flex gap-8 text-sm font-medium text-gray-400'>
+                <Link 
+                    to="/" 
+                    className={`transition hover:text-white ${location.pathname === '/' ? 'text-white' : ''}`}
+                >
+                    Daily
+                </Link>
+                <Link to="/" className="transition hover:text-white">Weekly</Link>
+                
+                <Link 
+                  to={deepDiveId ? `/article/${deepDiveId}` : '/'} 
+                  className={`transition hover:text-white ${location.pathname.startsWith('/article/') ? 'text-white' : ''}`}
+                >
+                  Deep Dives
+                </Link>
+                
+                <Link to="/" className="transition hover:text-white">Archive</Link>
             </div>
 
             <div className = 'flex items-center gap-4'>

@@ -38,7 +38,7 @@ const DeepDive = () => {
 
   return (
     <div className="min-h-screen bg-neutral-950 text-gray-200 font-sans selection:bg-green-900 selection:text-white">
-      <Navbar />
+      <Navbar deepDiveId={id} />
 
       <div className="fixed top-0 left-0 w-full h-1 z-50">
         <div className="h-full bg-green-500 w-[0%] animate-[width_1s_ease-out_forwards]" style={{width: '30%'}}></div>

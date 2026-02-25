@@ -73,7 +73,7 @@ const DailyPage = () => {
 
   return (
     <div className="min-h-screen bg-[#050505] text-gray-200 font-sans selection:bg-white selection:text-black">
-      <Navbar />
+      <Navbar deepDiveId={deepDiveArticle?.id} />
       <div className="sticky top-16 z-40 w-full border-b border-white/10 bg-black/40 backdrop-blur-md ">
         <div className="max-w-7xl mx-auto px-6 py-3 flex flex-col md:flex-row md:items-center justify-between gap-4">
            <div className="flex gap-6 text-xs uppercase tracking-widest overflow-x-auto no-scrollbar pb-2 md:pb-0">

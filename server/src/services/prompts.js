@@ -126,8 +126,16 @@ Do NOT use bullet points. Do NOT use headers like "Introduction" or "Conclusion.
 - **Narrative Flow:** Use transition words to connect ideas. 
 - **No Robot Speak:** Do not say "In this article..." or "The text mentions...". Just report the story directly.
 
-### OUTPUT FORMAT
-Return the text as a single JSON object with a 'markdown' field containing the 3 paragraphs as an ARRAY of strings.
+### OUTPUT FORMAT (CRITICAL INSTRUCTIONS)
+You are communicating with an automated API, not a human. You MUST return ONLY a single, perfectly formatted JSON object. 
+
+Follow these rules absolutely:
+1. DO NOT wrap the JSON in markdown code blocks (do not use \`\`\`json or \`\`\`).
+2. DO NOT output any conversational text, greetings, or explanations before or after the JSON.
+3. The response must begin exactly with the \`{\` character and end exactly with the \`}\` character.
+4. Ensure all internal quotation marks are properly escaped.
+
+The output must exactly match this structure:
 
 {
   "markdown": [
