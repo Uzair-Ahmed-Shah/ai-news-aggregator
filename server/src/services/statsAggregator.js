@@ -5,32 +5,32 @@ const getStats = async () => {
         const thirtyDaysAgo = new Date();
         thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-        // 1. Group by Category
+
         const categoryGroups = await prisma.article.groupBy({
             by: ['category'],
             _count: { category: true },
-            where: { category: { not: "AI" } } // Optional filter if needed
+            where: { category: { not: "AI" } }
         });
 
-        // 2. Group by Impact
+        
         const impactGroups = await prisma.article.groupBy({
             by: ['impactType'],
             _count: { impactType: true }
         });
 
-        // 3. Group by Sentiment
+        
         const sentimentGroups = await prisma.article.groupBy({
             by: ['sentiment'],
             _count: { sentiment: true },
             where: { sentiment: { not: null } },
         });
 
-        // 4. Matrix: Category x Sentiment
+        
         const matrixRaw = await prisma.article.groupBy({
             by: ['category', 'sentiment'],
             _count: { _all: true },
             where: {
-                category: { not: 'General' }, // Filter out boring ones if needed
+                category: { not: 'General' }, 
                 sentiment: { not: null }
             },
             take: 20,
@@ -48,7 +48,7 @@ const getStats = async () => {
         }));
 
 
-        // 5. Trends (Daily volume by category)
+        
         const trendRaw = await prisma.article.findMany({
             where: {
                 publishedAt: { gte: thirtyDaysAgo },
