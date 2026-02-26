@@ -22,50 +22,67 @@ const getStats = async () => {
         const sentimentGroups = await prisma.article.groupBy({
             by: ['sentiment'],
             _count: { sentiment: true },
-            where: { sentiment: { not: null } },
+            where: { 
+                sentiment: { not: null },
+                category: { not: "AI" }
+            },
         });
 
-        
+        // 4. Sentiment Matrix: Breakdown of sentiment PER category
         const matrixRaw = await prisma.article.groupBy({
             by: ['category', 'sentiment'],
             _count: { _all: true },
             where: {
-                category: { not: 'General' }, 
+                category: { not: 'AI' }, 
                 sentiment: { not: null }
-            },
-            take: 20,
-            orderBy: {
-                _count: {
-                    sentiment: 'desc'
-                }
             }
         });
 
-        const categorySentimentMatrix = matrixRaw.map(item => ({
-            category: item.category,
-            sentiment: item.sentiment,
-            count: item._count._all
-        }));
+        // Transform matrix into a unique list of categories with sentiment counts
+        const matrixMap = {};
+        matrixRaw.forEach(item => {
+            if (!matrixMap[item.category]) {
+                matrixMap[item.category] = { category: item.category, Positive: 0, Neutral: 0, Critical: 0, total: 0 };
+            }
+            const sent = item.sentiment || 'Neutral';
+            matrixMap[item.category][sent] = item._count._all;
+            matrixMap[item.category].total += item._count._all;
+        });
+        const sentimentMatrix = Object.values(matrixMap);
 
-
-        
+        // 5. Daily Trends: Volume and Sentiment over time
         const trendRaw = await prisma.article.findMany({
             where: {
                 publishedAt: { gte: thirtyDaysAgo },
+                category : {not: 'AI'}
             },
-            select: { publishedAt: true, category: true },
+            select: { publishedAt: true, category: true, sentiment: true },
             orderBy: { publishedAt: 'asc' }
         });
 
         const trendDict = {};
 
         trendRaw.forEach(elem => {
+            if (!elem.publishedAt) return;
             const dateVal = elem.publishedAt.toISOString().split('T')[0];
-            if (!trendDict[dateVal]) {
-                trendDict[dateVal] = { date: dateVal };
-            }
             const cat = elem.category || 'Other';
-            trendDict[dateVal][cat] = (trendDict[dateVal][cat] || 0) + 1;
+            const sent = elem.sentiment || 'Neutral';
+            
+            const key = `${dateVal}_${cat}`;
+            if (!trendDict[key]) {
+                trendDict[key] = { 
+                    date: dateVal, 
+                    category: cat,
+                    Positive: 0, 
+                    Neutral: 0, 
+                    Critical: 0,
+                    total: 0
+                };
+            }
+            if (trendDict[key][sent] !== undefined) {
+                trendDict[key][sent]++;
+            }
+            trendDict[key].total++;
         });
 
         const trendData = Object.values(trendDict).sort((a, b) => new Date(a.date) - new Date(b.date));
@@ -76,7 +93,7 @@ const getStats = async () => {
                 byCategory: categoryGroups.map(elem => ({ name: elem.category, value: elem._count.category })),
                 byImpact: impactGroups.map(elem => ({ name: elem.impactType || 'Unknown', value: elem._count.impactType })),
                 bySentiment: sentimentGroups.map(elem => ({ name: elem.sentiment, value: elem._count.sentiment })),
-                categorySentimentMatrix: categorySentimentMatrix
+                sentimentMatrix: sentimentMatrix
             },
             trends: trendData
         };

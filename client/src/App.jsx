@@ -1,6 +1,7 @@
 import React from 'react'
 import DailyPage from './components/DailyPage';
 import DeepDive from './components/DeepDive';
+import WeeklyPage from './components/WeeklyPage';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 
 function App() {
@@ -12,6 +13,7 @@ function App() {
      <Routes>
         <Route path="/" element={<DailyPage />} />
         <Route path="/article/:id" element={<DeepDive />} />
+        <Route path = '/weekly' element = {<WeeklyPage/>}/>
      </Routes>
     </div>
     </BrowserRouter>

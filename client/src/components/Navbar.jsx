@@ -27,7 +27,12 @@ const Navbar = ({ deepDiveId }) => {
                 >
                     Daily
                 </Link>
-                <Link to="/" className="transition hover:text-white">Weekly</Link>
+                <Link 
+                    to="/weekly" 
+                    className={`transition hover:text-white ${location.pathname === '/weekly' ? 'text-white' : ''}`}
+                >
+                    Weekly
+                </Link>
                 
                 <Link 
                   to={deepDiveId ? `/article/${deepDiveId}` : '/'} 
