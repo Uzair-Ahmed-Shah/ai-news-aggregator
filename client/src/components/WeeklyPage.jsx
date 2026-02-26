@@ -182,6 +182,107 @@ const WeeklyPage = () => {
               </div>
 
             </div>
+            <div className="bg-[#050505] border border-white/5 rounded-xl p-8 min-h-[500px] flex flex-col">
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4">
+                <div>
+                  <h3 className="text-xs uppercase tracking-widest text-gray-500 font-bold flex items-center gap-2">
+                    <TrendingUp size={14} className="text-purple-500" /> Sector Signal Velocity
+                  </h3>
+                  <p className="text-[10px] text-gray-600 mt-1 uppercase font-mono">Historical sentiment volatility per industry</p>
+                </div>
+                
+                <div className="flex flex-wrap gap-2">
+                    {sectorList.map(sector => (
+                        <button
+                            key={sector}
+                            onClick={() => setSelectedSector(sector)}
+                            className={`px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider transition-all ${
+                                selectedSector === sector 
+                                ? 'bg-white text-black ring-4 ring-white/10' 
+                                : 'bg-white/5 text-gray-500 hover:bg-white/10 hover:text-white'
+                            }`}
+                        >
+                            {sector}
+                        </button>
+                    ))}
+                </div>
+              </div>
+
+              <div className="flex-grow w-full h-[350px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={trendData} margin={{ top: 10, right: 20, left: -20, bottom: 0 }}>
+                    
+                        <linearGradient id="colorPositive" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor={SENTIMENT_COLORS.Positive} stopOpacity={0.1}/>
+                            <stop offset="95%" stopColor={SENTIMENT_COLORS.Positive} stopOpacity={0}/>
+                        </linearGradient>
+                    
+                    <CartesianGrid strokeDasharray="3 3" stroke="#111" vertical={false} />
+                    <XAxis 
+                        dataKey="date" 
+                        stroke="#333" 
+                        fontSize={10} 
+                        tickLine={false} 
+                        axisLine={false} 
+                        dy={15}
+                        tickFormatter={(str) => {
+                            const d = new Date(str);
+                            return `${d.toLocaleString('default', { month: 'short' })} ${d.getDate()}`;
+                        }} 
+                    />
+                    <YAxis stroke="#333" fontSize={10} tickLine={false} axisLine={false} />
+                    <Tooltip 
+                        contentStyle={{ backgroundColor: '#000', border: '1px solid #222', borderRadius: '8px', color: '#fff' }}
+                        labelStyle={{ color: '#555', fontSize: '10px', marginBottom: '5px' }}
+                    />
+                    <Legend 
+                        verticalAlign="top" 
+                        align="right"
+                        height={36} 
+                        iconType="circle" 
+                        wrapperStyle={{ fontSize: '10px', fontWeight: 'bold', paddingTop: '0px' }} 
+                    />
+                    
+                    <Line 
+                        type="monotone" 
+                        dataKey="Positive" 
+                        name="Bullish"
+                        stroke={SENTIMENT_COLORS.Positive} 
+                        strokeWidth={3} 
+                        dot={false}
+                        activeDot={{ r: 6, strokeWidth: 0 }}
+                        animationDuration={1000}
+                    />
+                    <Line 
+                        type="monotone" 
+                        dataKey="Neutral" 
+                        name="Stable"
+                        stroke={SENTIMENT_COLORS.Neutral} 
+                        strokeWidth={2} 
+                        strokeDasharray="5 5"
+                        dot={false}
+                        activeDot={{ r: 4 }}
+                        animationDuration={1500}
+                    />
+                    <Line 
+                        type="monotone" 
+                        dataKey="Critical" 
+                        name="Bearish / Alert"
+                        stroke={SENTIMENT_COLORS.Critical} 
+                        strokeWidth={3} 
+                        dot={false}
+                        activeDot={{ r: 6, strokeWidth: 0 }}
+                        animationDuration={2000}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+
+              <div className="mt-8 pt-6 border-t border-white/5 flex items-center justify-between text-[10px] text-gray-500 font-mono italic">
+                <span>* Data aggregated from verified industry publications.</span>
+                <span>ID: {selectedSector?.toUpperCase()}_TELEMETRY_STREAM</span>
+              </div>
+            </div>
 
             
 
