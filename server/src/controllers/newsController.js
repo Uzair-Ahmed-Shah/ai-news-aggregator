@@ -1,7 +1,7 @@
 const prisma = require('../lib/prisma');
 const { fetchSaveNews, processArticles } = require('../services/newsScraper');
 const { getStats } = require('../services/statsAggregator');
-
+const PDFDocument = require('pdfkit');
 
 const getNewsFeed = async (req, res) => {
     try {
@@ -240,6 +240,65 @@ const toggleSave = async (req, res) => {
     }
 }
 
+
+const generateWeeklyPDF = async (req, res) => {
+    try {
+        const sevenDaysAgo = new Date();
+        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+        const topArticles = await prisma.article.findMany({
+            where: {
+                publishedAt: { gte: sevenDaysAgo },
+                category: { not: "AI" } 
+            },
+            orderBy: { curatorScore: 'desc' },
+            take: 10
+        });
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', 'inline; filename="The_AI_Intel_Weekly_Dossier.pdf"');
+
+        const doc = new PDFDocument({ margin: 50 });
+
+        doc.pipe(res);
+
+        doc.font('Helvetica-Bold').fontSize(24).text('THE AI INTEL', { align: 'center' });
+        doc.font('Helvetica').fontSize(12).text('Weekly Intelligence Dossier', { align: 'center' });
+        doc.moveDown(0.5);
+        doc.fontSize(10).fillColor('gray').text(`Generated: ${new Date().toLocaleDateString()}`, { align: 'center' });
+        doc.moveDown(3);
+
+        topArticles.forEach((article, index) => {
+            doc.fillColor('black').font('Helvetica-Bold').fontSize(14)
+               .text(`${String(index + 1).padStart(2, '0')} // ${article.category.toUpperCase()}`);
+
+            doc.moveDown(0.3);
+            doc.font('Helvetica-Bold').fontSize(16).text(article.title);
+
+            doc.moveDown(0.2);
+            doc.font('Helvetica').fontSize(10).fillColor('blue')
+               .text(`Signal Score: ${article.curatorScore}  |  Source: ${article.sourceName || 'Unknown'}`);
+
+            doc.moveDown(0.5);
+            doc.font('Helvetica').fontSize(11).fillColor('#333333')
+               .text(article.summary ? article.summary.replace(/•/g, '') : "Analysis pending.", {
+                   align: 'justify',
+                   lineGap: 4
+               });
+
+            doc.moveDown(2); 
+        });
+
+
+        doc.end();
+
+    } catch (err) {
+        console.error("PDF Generation Error:", err);
+        if (!res.headersSent) {
+            res.status(500).json({ error: "Failed to generate dossier." });
+        }
+    }
+};
+
 module.exports = { 
     getNewsFeed, 
     getArticleById,
@@ -251,5 +310,6 @@ module.exports = {
     getSavedArticles,
     getUserActivity,
     toggleLike,
-    toggleSave
+    toggleSave,
+    generateWeeklyPDF
 };

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { BarChart as BarIcon, TrendingUp, Activity, Loader2 } from 'lucide-react';
+import { BarChart as BarIcon, TrendingUp, Activity, Loader2, Download } from 'lucide-react';
 import { 
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, 
   LineChart, Line, CartesianGrid, PieChart, Pie, Cell, Legend
@@ -283,11 +283,43 @@ const WeeklyPage = () => {
                 <span>ID: {selectedSector?.toUpperCase()}_TELEMETRY_STREAM</span>
               </div>
             </div>
-
-            
-
           </div>
         )}
+
+        <div className="mt-20">
+            <div className="flex flex-col md:flex-row justify-between items-end mb-8 border-b border-white/10 pb-4 gap-4">
+                <div>
+                    <h2 className="text-2xl font-serif text-white tracking-tight">The Executive Dossier</h2>
+                    <p className="text-[10px] text-gray-500 uppercase font-mono tracking-widest mt-1">
+                        Compiled Top 10 Signals • Official PDF Report
+                    </p>
+                </div>
+                
+                <a 
+                    href="http://localhost:8000/api/news/weekly/report" 
+                    target="_blank" 
+                    rel="noreferrer"
+                    download="Weekly_Dossier.pdf"
+                    className="flex items-center gap-2 bg-white text-black px-6 py-2 rounded text-[10px] font-bold uppercase tracking-widest hover:bg-gray-200 transition-colors"
+                >
+                    <Download size={14} /> Download Dossier
+                </a>
+            </div>
+
+            <div className="w-full h-[800px] rounded-xl overflow-hidden border border-white/10 bg-[#111] relative shadow-2xl">
+                <div className="absolute inset-0 flex flex-col items-center justify-center text-gray-500 z-0">
+                    <Loader2 size={30} className="animate-spin mb-4" />
+                    <span className="text-xs uppercase tracking-widest font-mono">Generating PDF Stream...</span>
+                </div>
+                
+                <iframe 
+                    src="http://localhost:8000/api/news/weekly/report" 
+                    title="Weekly Intelligence Dossier"
+                    className="w-full h-full relative z-10"
+                    style={{ border: 'none' }}
+                />
+            </div>
+        </div>
 
       </main>
     </div>

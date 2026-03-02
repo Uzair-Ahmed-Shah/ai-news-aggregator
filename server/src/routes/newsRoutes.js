@@ -17,5 +17,5 @@ router.post('/articles/:id/save', authenticateToken, newsController.toggleSave);
 router.post('/scrape', newsController.triggerScrape);
 
 router.post('/admin/process-batch', newsController.processBatchAdmin);
-
+router.get('/news/weekly/report', newsController.generateWeeklyPDF);
 module.exports = router;
