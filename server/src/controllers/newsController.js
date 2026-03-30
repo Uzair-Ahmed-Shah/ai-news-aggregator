@@ -127,7 +127,7 @@ const getWeeklyReports = async (req, res) => {
 
 
 const getSavedArticles = async (req, res) => {
-    const userId = req.user?.id;
+    const userId = req.user?.userId;
     if (!userId){
          return res.status(401).json({ error: "Unauthorized" });
     }
@@ -147,7 +147,7 @@ const getSavedArticles = async (req, res) => {
 
 
 const getUserActivity = async (req, res) => {
-    const userId = req.user?.id;
+    const userId = req.user?.userId;
     if (!userId) {
         return res.status(401).json({ error: "Unauthorized" })
     }
@@ -167,7 +167,7 @@ const getUserActivity = async (req, res) => {
 
 const toggleLike = async (req, res) => {
     const { id } = req.params;
-    const userId = req.user?.id; 
+    const userId = req.user?.userId; 
 
     if (!userId) {
         return res.status(401).json({ error: "Unauthorized" })
@@ -212,7 +212,7 @@ const toggleLike = async (req, res) => {
 
 const toggleSave = async (req, res) => {
     const { id } = req.params
-    const userId = req.user?.id
+    const userId = req.user?.userId
 
     if (!userId) {
         return res.status(401).json({ error: "Unauthorized" })

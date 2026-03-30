@@ -41,7 +41,7 @@ const parseJsonFromText = (text) => {
     throw new Error(`Failed to parse JSON: ${text.substring(0, 50)}...`);
   }
 };
-
+  
 const createChatCompletion = async (model, messages) => {
   return client.chat.completions.create({
     model,
