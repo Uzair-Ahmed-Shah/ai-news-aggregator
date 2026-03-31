@@ -2,15 +2,17 @@ const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
 const prisma = require('../lib/prisma.js')
 
+
+
 const register = async (req, res) => {
     try{
-        const {email, password} = req.body
+        const {name, email, password} = req.body
 
         const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
         const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z]).{8,}$/;
 
-        if (!email || !password){
-            return res.status(400).json({"error":"Email and Password are required"})
+        if (!email || !password || !name){
+            return res.status(400).json({"error":"Name, Email and Password are required"})
         }else if (!emailRegex.test(email)){
             return res.status(400).json({"error": "Invalid email. Email should only include (a-z, A-Z, 0-9, dot, @)"})
         }else if (!passwordRegex.test(password)){
@@ -26,17 +28,27 @@ const register = async (req, res) => {
         if (userExist){
             return res.status(400).json({"error": "User already exists"})
         }
-
         const hashPassword = await bcrypt.hash(password, 10)
 
         const newUser = await prisma.user.create({
             data: {
+                name,
                 email,
                 password: hashPassword
             }
         })
 
-        return res.status(201).json({"message":"User created", "userId":newUser.id})
+        const token = jwt.sign(
+            {userId: newUser.id},
+            process.env.JWT_SECRET,
+            { expiresIn : '1d'}
+        )
+
+        return res.status(201).json({
+            "message":"User created", 
+            token,
+            user: { name: newUser.name, email: newUser.email }
+        })
     }catch(err) {
         return res.status(500).json({"error": `Error - ${err}`})
     }
@@ -70,7 +82,11 @@ const login = async(req, res) => {
             { expiresIn : '1d'}
         )
 
-        res.status(200).json({'message': 'Login Successful', token})
+        res.status(200).json({
+            'message': 'Login Successful', 
+            token,
+            user: { name: user.name, email: user.email }
+        })
 
     }catch (err) {
         console.error(err);

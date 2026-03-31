@@ -1,11 +1,12 @@
 import React, {useState} from 'react'
 import { Link, useLocation } from 'react-router-dom';
 import { Menu, Search, User, LogOut, Bookmark, Activity } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 const Navbar = ({ deepDiveId }) => {
     const [isDropdownOpen, setDropdownOpen] = useState(false);
     const location = useLocation();
-    const user = {name : 'Uzair', avatar : null}
+    const { user, openAuthModal, logout } = useAuth();
 
   return (
     <nav className = 'sticky z-50 top-0 w-full  bg-black backdrop-blur-md'>
@@ -53,12 +54,12 @@ const Navbar = ({ deepDiveId }) => {
                 <div className='relative'>
                     <button onClick = {() => setDropdownOpen(!isDropdownOpen)} 
                     className='flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-tr from-purple-500 to-blue-500 text-xs font-bold text-white ring-2 ring-black transition hover:ring-white/20'>
-                        {user.name[0]}
+                        {user.name ? user.name[0].toUpperCase() : 'U'}
                     </button>
 
                     {isDropdownOpen && (
                         <div className='absolute right-0 mt-2 w-48 origin-top-right rounded-md border border-white/10 bg-[#111] py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none'>
-                            <div className='px-4 py-2 text-xs text-gray-500'> Signed in as <br/> <span className='text-white font-bold'>{user.name}</span></div>
+                            <div className='px-4 py-2 text-xs text-gray-500'> Signed in as <br/> <span className='text-white font-bold'>{user.name || 'User'}</span></div>
                             <hr className='border-white/10' />
                             <a href="#" className="flex items-center px-4 py-2 text-sm text-gray-300 hover:bg-white/5 hover:text-white">
                                 <Activity size={14} className="mr-2"/> Activity
@@ -67,14 +68,20 @@ const Navbar = ({ deepDiveId }) => {
                                 <Bookmark size={14} className="mr-2"/> Saved
                             </a>
                             <hr className="border-white/10"/>
-                            <button className="flex w-full items-center px-4 py-2 text-left text-sm text-red-400 hover:bg-white/5">
+                            <button 
+                                onClick={logout}
+                                className="flex w-full items-center px-4 py-2 text-left text-sm text-red-400 hover:bg-white/5"
+                            >
                                 <LogOut size={14} className="mr-2"/> Sign out
                             </button>
                         </div>
                     )}
                 </div>
                 ):(
-                    <button className='rounded-sm bg-white px-4 py-1.5 text-xs font-bold text-black hover:bg-gray-200'>
+                    <button 
+                        onClick={openAuthModal}
+                        className='rounded-sm bg-white px-4 py-1.5 text-xs font-bold text-black hover:bg-gray-200'
+                    >
                         Sign In
                     </button>
                 )}

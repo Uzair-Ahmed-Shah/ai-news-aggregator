@@ -2,14 +2,18 @@ import React from 'react'
 import DailyPage from './components/DailyPage';
 import DeepDive from './components/DeepDive';
 import WeeklyPage from './components/WeeklyPage';
+import AuthModal from './components/AuthModal';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { AuthProvider } from './context/AuthContext';
 
 function App() {
   
 
   return (
+    <AuthProvider>
     <BrowserRouter>
     <div className='min-h-screen bg-slate-700'>
+     <AuthModal />
      <Routes>
         <Route path="/" element={<DailyPage />} />
         <Route path="/article/:id" element={<DeepDive />} />
@@ -17,6 +21,7 @@ function App() {
      </Routes>
     </div>
     </BrowserRouter>
+    </AuthProvider>
   )
 }
 

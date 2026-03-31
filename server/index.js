@@ -1,10 +1,11 @@
+require('dotenv').config();
 const express =  require('express');
 const cors = require('cors');
 const cron = require('node-cron');
 const { fetchSaveNews, processArticles } = require('./src/services/newsScraper');
 const authRoutes = require('./src/routes/authRoutes.js');
 const newsRoutes = require('./src/routes/newsRoutes.js');
-require('dotenv').config();
+
 
 console.log('Using node-cron for scheduling')
 
