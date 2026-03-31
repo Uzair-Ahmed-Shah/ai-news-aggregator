@@ -1,4 +1,5 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
+import api from '../lib/api';
 
 const AuthContext = createContext();
 
@@ -9,12 +10,25 @@ export const AuthProvider = ({ children }) => {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
   useEffect(() => {
-    const storedToken = localStorage.getItem('token');
-    if (storedToken) {
-      setToken(storedToken);
-      setUser({ loggedIn: true }); 
-    }
-    setLoading(false);
+    const fetchUser = async () => {
+      const storedToken = localStorage.getItem('token');
+      if (storedToken) {
+        try {
+          setToken(storedToken);
+          
+          const response = await api.get('/auth/me');
+          setUser({ ...response.data.user, loggedIn: true });
+        } catch (error) {
+          console.error("Token verification failed:", error);
+          localStorage.removeItem('token');
+          setToken(null);
+          setUser(null);
+        }
+      }
+      setLoading(false);
+    };
+
+    fetchUser();
   }, []);
 
   const login = (newToken, userData) => {
