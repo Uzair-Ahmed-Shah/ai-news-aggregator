@@ -6,6 +6,7 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
   useEffect(() => {
     const storedToken = localStorage.getItem('token');
@@ -28,8 +29,14 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
   };
 
+  const openAuthModal = () => setIsAuthModalOpen(true);
+  const closeAuthModal = () => setIsAuthModalOpen(false);
+
   return (
-    <AuthContext.Provider value={{ user, token, login, logout, loading }}>
+    <AuthContext.Provider value={{ 
+      user, token, login, logout, loading, 
+      isAuthModalOpen, openAuthModal, closeAuthModal 
+    }}>
       {children}
     </AuthContext.Provider>
   );
