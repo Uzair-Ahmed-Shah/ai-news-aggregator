@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../lib/api';
 import { BarChart as BarIcon, TrendingUp, Activity, Loader2, Download } from 'lucide-react';
 import { 
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, 
@@ -15,7 +15,7 @@ const WeeklyPage = () => {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const res = await axios.get('http://localhost:8000/api/stats');
+        const res = await api.get('/stats');
         setStats(res.data);
         if (res.data.charts.byCategory && res.data.charts.byCategory.length > 0) {
           setSelectedSector(res.data.charts.byCategory[0].name);
@@ -296,7 +296,7 @@ const WeeklyPage = () => {
                 </div>
                 
                 <a 
-                    href="http://localhost:8000/api/news/weekly/report" 
+                    href={`${import.meta.env.VITE_API_URL || 'http://localhost:8000/api'}/news/weekly/report`} 
                     target="_blank" 
                     rel="noreferrer"
                     download="Weekly_Dossier.pdf"
@@ -313,7 +313,7 @@ const WeeklyPage = () => {
                 </div>
                 
                 <iframe 
-                    src="http://localhost:8000/api/news/weekly/report" 
+                    src={`${import.meta.env.VITE_API_URL || 'http://localhost:8000/api'}/news/weekly/report`} 
                     title="Weekly Intelligence Dossier"
                     className="w-full h-full relative z-10"
                     style={{ border: 'none' }}

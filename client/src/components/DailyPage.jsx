@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import axios from 'axios';
+import api from '../lib/api';
 import { Filter, Loader2, ChevronLeft, ChevronRight, Calendar } from 'lucide-react';
 import { format } from 'date-fns';
 import Navbar from './Navbar';
@@ -21,7 +21,7 @@ const DailyPage = () => {
     const fetchNews = async () => {
       setLoading(true);
       try {
-        const res = await axios.get('http://localhost:8000/api/news');
+        const res = await api.get('/news');
         setAllArticles(res.data.articles || []);
       } catch (err) {
         console.error("Failed to fetch news", err);
