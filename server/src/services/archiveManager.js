@@ -46,7 +46,6 @@ const generateWeeklySnapshot = async () => {
         const archiveEntry = await prisma.weeklyReport.create({
             data: {
                 title: placeholderTitle,
-                weekStartDate: weekStartDate,
                 weekEndDate: weekEndDate,
                 topArticles: snapshotData
             }

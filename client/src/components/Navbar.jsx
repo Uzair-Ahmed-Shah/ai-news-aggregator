@@ -42,7 +42,12 @@ const Navbar = ({ deepDiveId }) => {
                   Deep Dives
                 </Link>
                 
-                <Link to="/" className="transition hover:text-white">Archive</Link>
+                <Link 
+                  to="/archive" 
+                  className={`transition hover:text-white ${location.pathname === '/archive' ? 'text-white' : ''}`}
+                >
+                  Archive
+                </Link>
             </div>
 
             <div className = 'flex items-center gap-4'>
