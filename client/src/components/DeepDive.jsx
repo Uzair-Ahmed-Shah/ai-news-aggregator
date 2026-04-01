@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../lib/api';
 import { ArrowLeft, Clock, Calendar, Share2, Bookmark, ShieldCheck, FileText } from 'lucide-react';
 import { format } from 'date-fns';
 import Navbar from './Navbar';
@@ -15,7 +15,7 @@ const DeepDive = () => {
     const fetchArticle = async () => {
       setLoading(true);
       try {
-        const res = await axios.get(`http://localhost:8000/api/news/${id}`);
+        const res = await api.get(`/news/${id}`);
         setArticle(res.data.article);
       } catch (err) {
         console.error("Failed to fetch article", err);
