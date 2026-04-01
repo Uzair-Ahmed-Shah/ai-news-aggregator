@@ -24,9 +24,7 @@
     "node-cron": "^4.2.1",
     "nodemon": "^3.1.11",
     "openai": "^4.104.0",
-    "pdfkit": "^0.17.2"
-  },
-  "devDependencies": {
+    "pdfkit": "^0.17.2",
     "prisma": "^5.10.2"
   }
 }
