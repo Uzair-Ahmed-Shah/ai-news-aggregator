@@ -3,6 +3,7 @@ const express =  require('express');
 const cors = require('cors');
 const cron = require('node-cron');
 const { fetchSaveNews, processArticles } = require('./src/services/newsScraper');
+const { generateWeeklySnapshot } = require('./src/services/archiveManager');
 const authRoutes = require('./src/routes/authRoutes.js');
 const newsRoutes = require('./src/routes/newsRoutes.js');
 
@@ -29,6 +30,16 @@ cron.schedule('30 3 * * *', async () => {
         console.log(`LLM Analysis Pipeline failed - ${err.message}`)
     }
 })
+
+cron.schedule('0 4 * * 0', async () => {
+    console.log('4:00 AM (Sunday): Generating Weekly Archive Snapshot');
+    try {
+        await generateWeeklySnapshot();
+        console.log('Archive Snapshot generation completed.');
+    } catch (err) {
+        console.log(`Archive Snapshot generation failed - ${err.message}`);
+    }
+});
 
 const app = express();
 const PORT = process.env.PORT || 8000;
