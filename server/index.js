@@ -54,7 +54,7 @@ app.get('/', (req, res) => {
 });
 
 app.use('/api/auth', authRoutes);
-app.use('/api/news', newsRoutes);
+app.use('/api', newsRoutes);
 app.use('/api/archive', archiveRoutes);
 
 app.listen(PORT, () => {
