@@ -80,7 +80,7 @@ const Archive = () => {
                   </div>
                   
                   <Link 
-                    to={`#`} 
+                    to={`/archive/${report.id}`} 
                     className="flex items-center text-white hover:text-gray-300 transition-colors gap-1 text-[10px] font-bold uppercase tracking-wider"
                   >
                     View Report

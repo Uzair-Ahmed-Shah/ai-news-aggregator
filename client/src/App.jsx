@@ -4,6 +4,7 @@ import DeepDive from './components/DeepDive';
 import WeeklyPage from './components/WeeklyPage';
 import AuthModal from './components/AuthModal';
 import Archive from './components/Archive';
+import ArchiveDetail from './components/ArchiveDetail';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 
@@ -20,6 +21,7 @@ function App() {
         <Route path="/article/:id" element={<DeepDive />} />
         <Route path="/weekly" element={<WeeklyPage/>} />
         <Route path="/archive" element={<Archive/>} />
+        <Route path="/archive/:id" element={<ArchiveDetail/>} />
      </Routes>
     </div>
     </BrowserRouter>
