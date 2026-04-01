@@ -6,6 +6,7 @@ const { fetchSaveNews, processArticles } = require('./src/services/newsScraper')
 const { generateWeeklySnapshot } = require('./src/services/archiveManager');
 const authRoutes = require('./src/routes/authRoutes.js');
 const newsRoutes = require('./src/routes/newsRoutes.js');
+const archiveRoutes = require('./src/routes/archiveRoutes.js');
 
 
 console.log('Using node-cron for scheduling')
@@ -53,7 +54,8 @@ app.get('/', (req, res) => {
 });
 
 app.use('/api/auth', authRoutes);
-app.use('/api', newsRoutes);
+app.use('/api/news', newsRoutes);
+app.use('/api/archive', archiveRoutes);
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
