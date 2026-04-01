@@ -88,9 +88,12 @@ model Note {
 
 
 model WeeklyReport {
-  id Int @id @default(autoincrement())
-  weekStartDate DateTime
-  weekEndDate DateTime
-  trends Json 
-  createdAt DateTime @default(now())
+  id            Int      @id @default(autoincrement())
+  title         String? 
+  weekEndDate   DateTime
+  topArticles   Json     
+  trends        Json?    
+  createdAt     DateTime @default(now())
+
+  @@map("weekly_reports")
 }
