@@ -1,12 +1,25 @@
 import React, {useState} from 'react'
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, Search, User, LogOut, Bookmark, Activity } from 'lucide-react';
+import { Menu, Search, User, LogOut, Bookmark, Activity, Mail } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 const Navbar = ({ deepDiveId }) => {
     const [isDropdownOpen, setDropdownOpen] = useState(false);
     const location = useLocation();
-    const { user, openAuthModal, logout } = useAuth();
+    const { user, openAuthModal, logout, toggleNewsletterOptIn } = useAuth();
+    const [isUpdatingNewsletter, setIsUpdatingNewsletter] = useState(false);
+
+    const handleNewsletterToggle = async () => {
+        if (!user || isUpdatingNewsletter) return;
+        setIsUpdatingNewsletter(true);
+        try {
+            await toggleNewsletterOptIn(!user.newsletterOptIn);
+        } catch (error) {
+            console.error("Failed to toggle newsletter:", error);
+        } finally {
+            setIsUpdatingNewsletter(false);
+        }
+    };
 
   return (
     <nav className = 'sticky z-50 top-0 w-full  bg-black backdrop-blur-md'>
@@ -72,7 +85,25 @@ const Navbar = ({ deepDiveId }) => {
                             <a href="#" className="flex items-center px-4 py-2 text-sm text-gray-300 hover:bg-white/5 hover:text-white">
                                 <Bookmark size={14} className="mr-2"/> Saved
                             </a>
-                            <hr className="border-white/10"/>
+                            <hr className="border-white/10 my-1"/>
+                            
+                            {/* Newsletter Toggle */}
+                            <div className="flex items-center justify-between px-4 py-2 hover:bg-white/5 cursor-pointer" onClick={handleNewsletterToggle}>
+                                <div className="flex items-center text-sm text-gray-300">
+                                    <Mail size={14} className="mr-2 text-gray-400" />
+                                    Weekly Briefing
+                                </div>
+                                
+                                <button 
+                                    className={`relative inline-flex h-4 w-8 items-center rounded-full transition-colors duration-300 focus:outline-none ${user.newsletterOptIn ? 'bg-blue-500' : 'bg-gray-600'} ${isUpdatingNewsletter ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                >
+                                    <span 
+                                        className={`inline-block h-3 w-3 transform rounded-full bg-white transition duration-300 ${user.newsletterOptIn ? 'translate-x-4' : 'translate-x-1'}`}
+                                    />
+                                </button>
+                            </div>
+
+                            <hr className="border-white/10 my-1"/>
                             <button 
                                 onClick={logout}
                                 className="flex w-full items-center px-4 py-2 text-left text-sm text-red-400 hover:bg-white/5"
