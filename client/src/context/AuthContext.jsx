@@ -43,24 +43,13 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
   };
 
-  const toggleNewsletterOptIn = async (optIn) => {
-    try {
-      const response = await api.patch('/auth/newsletter', { optIn });
-      setUser(prev => ({ ...prev, newsletterOptIn: response.data.newsletterOptIn }));
-      return response.data.newsletterOptIn;
-    } catch (error) {
-      console.error("Failed to update newsletter preference:", error);
-      throw error;
-    }
-  };
-
   const openAuthModal = () => setIsAuthModalOpen(true);
   const closeAuthModal = () => setIsAuthModalOpen(false);
 
   return (
     <AuthContext.Provider value={{ 
       user, token, login, logout, loading, 
-      isAuthModalOpen, openAuthModal, closeAuthModal, toggleNewsletterOptIn
+      isAuthModalOpen, openAuthModal, closeAuthModal 
     }}>
       {children}
     </AuthContext.Provider>
