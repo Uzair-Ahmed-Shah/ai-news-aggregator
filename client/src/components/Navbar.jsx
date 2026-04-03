@@ -87,7 +87,7 @@ const Navbar = ({ deepDiveId }) => {
                             </a>
                             <hr className="border-white/10 my-1"/>
                             
-                            {/* Newsletter Toggle */}
+                            
                             <div className="flex items-center justify-between px-4 py-2 hover:bg-white/5 cursor-pointer" onClick={handleNewsletterToggle}>
                                 <div className="flex items-center text-sm text-gray-300">
                                     <Mail size={14} className="mr-2 text-gray-400" />
