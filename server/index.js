@@ -20,6 +20,9 @@ cron.schedule('0 3 * * *', async () => {
   }catch (err){
     console.log(`Daily cron failed - ${err.message}`)
   }
+},{
+  scheduled: true,
+  timezone: "Asia/Kolkata"
 })
 
 cron.schedule('30 3 * * *', async () => {
@@ -30,6 +33,9 @@ cron.schedule('30 3 * * *', async () => {
     } catch (err) {
         console.log(`LLM Analysis Pipeline failed - ${err.message}`)
     }
+},{
+  scheduled: true,
+  timezone: "Asia/Kolkata"
 })
 
 cron.schedule('0 4 * * 0', async () => {
@@ -40,6 +46,9 @@ cron.schedule('0 4 * * 0', async () => {
     } catch (err) {
         console.log(`Archive Snapshot generation failed - ${err.message}`);
     }
+},{
+  scheduled: true,
+  timezone: "Asia/Kolkata"
 });
 
 const app = express();
