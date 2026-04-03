@@ -46,10 +46,28 @@ export const AuthProvider = ({ children }) => {
   const openAuthModal = () => setIsAuthModalOpen(true);
   const closeAuthModal = () => setIsAuthModalOpen(false);
 
+  const toggleNewsletterOptIn = async () => {
+    if (!user) return;
+    try {
+      const response = await api.patch('/auth/newsletter', { optIn: !user.newsletterOptIn });
+      setUser(prevUser => ({
+        ...prevUser,
+        newsletterOptIn: response.data.newsletterOptIn !== undefined 
+          ? response.data.newsletterOptIn 
+          : !prevUser.newsletterOptIn
+      }));
+      return response.data;
+    } catch (error) {
+      console.error("Error toggling newsletter:", error);
+      throw error;
+    }
+  };
+
   return (
     <AuthContext.Provider value={{ 
       user, token, login, logout, loading, 
-      isAuthModalOpen, openAuthModal, closeAuthModal 
+      isAuthModalOpen, openAuthModal, closeAuthModal,
+      toggleNewsletterOptIn
     }}>
       {children}
     </AuthContext.Provider>
