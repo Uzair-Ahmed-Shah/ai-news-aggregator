@@ -98,7 +98,7 @@ const getMe = async (req, res) => {
     try {
         const user = await prisma.user.findUnique({
             where: { id: req.user.userId },
-            select: { id: true, name: true, email: true, newsletterOptIn: true }
+            select: { id: true, name: true, email: true }
         });
 
         if (!user) {
@@ -112,24 +112,4 @@ const getMe = async (req, res) => {
     }
 }
 
-const toggleNewsletter = async (req, res) => {
-    try {
-        const { optIn } = req.body;
-        
-        const updatedUser = await prisma.user.update({
-            where: { id: req.user.userId },
-            data: { newsletterOptIn: optIn },
-            select: { newsletterOptIn: true }
-        });
-
-        res.status(200).json({ 
-            message: "Newsletter preference updated", 
-            newsletterOptIn: updatedUser.newsletterOptIn 
-        });
-    } catch (err) {
-        console.error("TOGGLE NEWSLETTER ERROR:", err);
-        res.status(500).json({ error: "Failed to update preference" });
-    }
-}
-
-module.exports = { register , login, getMe, toggleNewsletter }
+module.exports = { register , login, getMe }

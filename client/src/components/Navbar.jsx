@@ -5,15 +5,17 @@ import { useAuth } from '../context/AuthContext';
 
 const Navbar = ({ deepDiveId }) => {
     const [isDropdownOpen, setDropdownOpen] = useState(false);
+    const [isUpdatingNewsletter, setIsUpdatingNewsletter] = useState(false);
     const location = useLocation();
     const { user, openAuthModal, logout, toggleNewsletterOptIn } = useAuth();
-    const [isUpdatingNewsletter, setIsUpdatingNewsletter] = useState(false);
-
-    const handleNewsletterToggle = async () => {
-        if (!user || isUpdatingNewsletter) return;
+    
+    const handleNewsletterToggle = async (e) => {
+        e.stopPropagation();
+        if (isUpdatingNewsletter) return;
+        
         setIsUpdatingNewsletter(true);
         try {
-            await toggleNewsletterOptIn(!user.newsletterOptIn);
+            await toggleNewsletterOptIn();
         } catch (error) {
             console.error("Failed to toggle newsletter:", error);
         } finally {
