@@ -16,6 +16,7 @@ model User {
   password  String   
   name      String?
   createdAt DateTime @default(now())
+  newsletterOptIn Boolean @default(true)
   notes     Note[]
   likes         ArticleLike[]
   savedArticles SavedArticle[]
