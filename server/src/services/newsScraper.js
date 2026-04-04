@@ -117,7 +117,9 @@ const fetchSaveNews = async (days = 1, pageSize = 40) => {
                 pageSize: pageSize
             },
             headers : { 'X-Api-Key': process.env.apiKey || process.env.NEWS_API_KEY}
-        })        if (!response.data || !response.data.articles) {
+        });
+
+        if (!response.data || !response.data.articles) {
             console.log("⚠️ No articles found in NewsAPI response.");
             return;
         }
