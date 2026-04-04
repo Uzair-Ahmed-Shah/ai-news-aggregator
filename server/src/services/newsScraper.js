@@ -98,19 +98,26 @@ const scrapeArticleContent = async (url) => {
 
 const fetchSaveNews = async (days = 1, pageSize = 40) => {
     try {
-        console.log(`Searching NewsAPI for articles from the last ${days} days...`);
+        const toDate = new Date();
+        toDate.setDate(toDate.getDate() - 1);
+        const fromDate = new Date();
+        fromDate.setDate(fromDate.getDate() - (days + 1));
+        
+        const formattedFromDate = fromDate.toISOString().split('T')[0];
+        const formattedToDate = toDate.toISOString().split('T')[0];
+
+        console.log(`Searching NewsAPI for articles between ${formattedFromDate} and ${formattedToDate}...`);
         const response = await axios.get('https://newsapi.org/v2/everything', {
             params : {
                 q: 'AI OR "Artificial Intelligence" OR "Machine Learning"',
                 sortBy: 'relevancy',
                 language: 'en',
-                from: new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString(), 
+                from: formattedFromDate,
+                to: formattedToDate,
                 pageSize: pageSize
             },
             headers : { 'X-Api-Key': process.env.apiKey || process.env.NEWS_API_KEY}
-        })
-
-        if (!response.data || !response.data.articles) {
+        })        if (!response.data || !response.data.articles) {
             console.log("⚠️ No articles found in NewsAPI response.");
             return;
         }
