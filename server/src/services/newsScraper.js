@@ -243,7 +243,7 @@ const processArticles = async (size = 30) => {
 
                 const topArticle = await prisma.article.findFirst({
                     where: {
-                        publishedAt: { gte: new Date(Date.now() - 24 * 60 * 60 * 1000) }, 
+                        createdAt: { gte: new Date(Date.now() - 24 * 60 * 60 * 1000) },
                         curatorScore: { gte: 75 } 
                     },
                     orderBy: { curatorScore: 'desc' }

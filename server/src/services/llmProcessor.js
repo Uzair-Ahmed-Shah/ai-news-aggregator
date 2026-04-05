@@ -27,15 +27,23 @@ const parseJsonFromText = (text) => {
       }
     }
     
-    const startIndex = text.indexOf('{');
-    const endIndex = text.lastIndexOf('}');
-    if (startIndex !== -1 && endIndex !== -1) {
-      const jsonCandidate = text.substring(startIndex, endIndex + 1);
+    const arrStart = text.indexOf('[');
+    const arrEnd = text.lastIndexOf(']');
+    const objStart = text.indexOf('{');
+    const objEnd = text.lastIndexOf('}');
+    
+    if (arrStart !== -1 && arrEnd !== -1 && (objStart === -1 || arrStart < objStart)) {
+      const arrCandidate = text.substring(arrStart, arrEnd + 1);
+      try {
+        return JSON.parse(arrCandidate);
+      } catch (e) {}
+    }
+
+    if (objStart !== -1 && objEnd !== -1) {
+      const jsonCandidate = text.substring(objStart, objEnd + 1);
       try {
         return JSON.parse(jsonCandidate);
-      } catch (e3) {
-        // Fallthrough
-      }
+      } catch (e) {}
     }
 
     throw new Error(`Failed to parse JSON: ${text.substring(0, 50)}...`);
