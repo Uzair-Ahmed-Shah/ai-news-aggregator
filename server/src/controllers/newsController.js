@@ -26,6 +26,23 @@ const getNewsFeed = async (req, res) => {
             }
             return (b.curatorScore || 0) - (a.curatorScore || 0);
         });
+
+        if (sortedArticles.length > 0) {
+            const hero = sortedArticles[0];
+            if (!hero.deepSummary && hero.fullContent) {
+                try {
+                    const llmProcessor = require('../services/llmProcessor');
+                    console.log(`Deep Dive generation triggered for Hero Article: ${hero.title}`);
+                    await llmProcessor.generateDeepAnalysis(hero);
+                    const updatedHero = await prisma.article.findUnique({ where: { id: hero.id } });
+                    if (updatedHero) {
+                        sortedArticles[0] = updatedHero;
+                    }
+                } catch (err) {
+                    console.error("Failed to generate deep dive:", err.message);
+                }
+            }
+        }
         
         return res.json({ articles :sortedArticles });
     } catch (err) {
