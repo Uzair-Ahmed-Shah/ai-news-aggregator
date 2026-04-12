@@ -15,7 +15,14 @@ const getNewsFeed = async (req, res) => {
                 category: { not: "AI" } 
             },
             orderBy: { publishedAt: 'desc' },
-            take: 300 
+            take: 300,
+            select: {
+                id: true, title: true, url: true, summary: true,
+                deepSummary: true, imageUrl: true, curatorScore: true,
+                sourceName: true, category: true, sentiment: true,
+                impactType: true, publishedAt: true, createdAt: true,
+                likesCount: true,
+            }
         });
 
         const sortedArticles = articles.sort((a, b) => {
@@ -29,14 +36,29 @@ const getNewsFeed = async (req, res) => {
 
         if (sortedArticles.length > 0) {
             const hero = sortedArticles[0];
-            if (!hero.deepSummary && hero.fullContent) {
+            if (!hero.deepSummary) {
                 try {
-                    const llmProcessor = require('../services/llmProcessor');
-                    console.log(`Deep Dive generation triggered for Hero Article: ${hero.title}`);
-                    await llmProcessor.generateDeepAnalysis(hero);
-                    const updatedHero = await prisma.article.findUnique({ where: { id: hero.id } });
-                    if (updatedHero) {
-                        sortedArticles[0] = updatedHero;
+                    const heroFull = await prisma.article.findUnique({
+                        where: { id: hero.id },
+                        select: { fullContent: true }
+                    });
+                    if (heroFull?.fullContent) {
+                        const llmProcessor = require('../services/llmProcessor');
+                        console.log(`Deep Dive generation triggered for Hero Article: ${hero.title}`);
+                        await llmProcessor.generateDeepAnalysis({ ...hero, fullContent: heroFull.fullContent });
+                        const updatedHero = await prisma.article.findUnique({
+                            where: { id: hero.id },
+                            select: {
+                                id: true, title: true, url: true, summary: true,
+                                deepSummary: true, imageUrl: true, curatorScore: true,
+                                sourceName: true, category: true, sentiment: true,
+                                impactType: true, publishedAt: true, createdAt: true,
+                                likesCount: true,
+                            }
+                        });
+                        if (updatedHero) {
+                            sortedArticles[0] = updatedHero;
+                        }
                     }
                 } catch (err) {
                     console.error("Failed to generate deep dive:", err.message);

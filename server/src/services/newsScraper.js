@@ -129,6 +129,14 @@ const fetchSaveNews = async (days = 1, pageSize = 40) => {
         let savedCount = 0;
         const seenUrls = new Set();
 
+        try {
+            await prisma.$connect();
+            console.log('Prisma connected to Neon DB successfully.');
+        } catch (connErr) {
+            console.error('Failed to connect to Neon DB:', connErr.message);
+            return;
+        }
+
         for (const article of articles) {
             const cleanedUrl = cleanUrl(article.url);
             
@@ -150,33 +158,41 @@ const fetchSaveNews = async (days = 1, pageSize = 40) => {
             const result = await scrapeArticleContent(cleanedUrl);
             
             if (result.success) {
-                try {
+                for (let attempt = 1; attempt <= 2; attempt++) {
+                    try {
+                        const data = await prisma.article.upsert({
+                            where : {url:cleanedUrl},
+                            update : {
+                                curatorScore: result.score,
+                                fullContent: result.content,
+                                summary: article.description || "",
+                                title: article.title || "No Title",
+                                imageUrl: article.urlToImage || null
+                            },
+                            create:{
+                                title: article.title || "No Title",
+                                url: cleanedUrl,
+                                fullContent:result.content,
+                                summary:article.description || "",
+                                imageUrl: article.urlToImage || null,
+                                sourceName: article.source.name || "",
+                                publishedAt : new Date(article.publishedAt),
+                                curatorScore:result.score,
+                                category: "AI",
+                            }
+                        });
+                        savedCount += 1;
+                        break;
 
-                    const data = await prisma.article.upsert({
-                        where : {url:cleanedUrl},
-                        update : {
-                            curatorScore: result.score,
-                            fullContent: result.content,
-                            summary: article.description || "",
-                            title: article.title || "No Title",
-                            imageUrl: article.urlToImage || null
-                        },
-                        create:{
-                            title: article.title || "No Title",
-                            url: cleanedUrl,
-                            fullContent:result.content,
-                            summary:article.description || "",
-                            imageUrl: article.urlToImage || null,
-                            sourceName: article.source.name || "",
-                            publishedAt : new Date(article.publishedAt),
-                            curatorScore:result.score,
-                            category: "AI",
+                    } catch (err) {
+                        console.error(`   ❌ DB Save Error (attempt ${attempt}): ${err.message}`);
+                        if (attempt < 2) {
+                            console.log('   Retrying after reconnect...');
+                            try { await prisma.$disconnect(); } catch (e) {}
+                            await new Promise(r => setTimeout(r, 1000));
+                            try { await prisma.$connect(); } catch (e) {}
                         }
-                    });
-                    savedCount += 1
-
-                }catch (err){
-                    console.error(`Db Error: ${err.message}`);
+                    }
                 }
             }
         }

@@ -65,6 +65,10 @@ app.get('/', (req, res) => {
   res.send('AI News Aggregator API is Running 🚀');
 });
 
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'ok' });
+});
+
 app.use('/api/auth', authRoutes);
 app.use('/api', newsRoutes);
 app.use('/api/archive', archiveRoutes);
