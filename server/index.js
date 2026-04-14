@@ -73,6 +73,14 @@ app.use('/api/auth', authRoutes);
 app.use('/api', newsRoutes);
 app.use('/api/archive', archiveRoutes);
 
-app.listen(PORT, () => {
+const prisma = require('./src/lib/prisma');
+
+app.listen(PORT, async () => {
   console.log(`Server running on port ${PORT}`);
+  try {
+    await prisma.$queryRaw`SELECT 1`;
+    console.log('Connected to Neon DB.');
+  } catch (err) {
+    console.error('DB connection failed on startup:', err.message);
+  }
 });
