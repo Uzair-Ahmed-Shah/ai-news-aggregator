@@ -129,11 +129,21 @@ const fetchSaveNews = async (days = 1, pageSize = 40) => {
         let savedCount = 0;
         const seenUrls = new Set();
 
-        try {
-            await prisma.$connect();
-            console.log('Prisma connected to Neon DB successfully.');
-        } catch (connErr) {
-            console.error('Failed to connect to Neon DB:', connErr.message);
+        let dbReady = false;
+        for (let ping = 1; ping <= 5; ping++) {
+            try {
+                await prisma.$queryRaw`SELECT 1`;
+                console.log(`DB ready after ${ping} attempt(s).`);
+                dbReady = true;
+                break;
+            } catch (e) {
+                console.log(`DB not ready (attempt ${ping}/5): ${e.message.split('\n')[0]}`);
+                await new Promise(r => setTimeout(r, 3000));
+            }
+        }
+
+        if (!dbReady) {
+            console.error('Neon DB did not wake up after 5 attempts. Aborting scrape.');
             return;
         }
 
@@ -145,10 +155,16 @@ const fetchSaveNews = async (days = 1, pageSize = 40) => {
 
             console.log(`   Stats check: ${article.title.substring(0, 40)}...`);
 
-            const existing = await prisma.article.findUnique({
-                where: { url: cleanedUrl },
-                select: { id: true, fullContent: true }
-            });
+            let existing = null;
+            try {
+                existing = await prisma.article.findUnique({
+                    where: { url: cleanedUrl },
+                    select: { id: true, fullContent: true }
+                });
+            } catch (err) {
+                console.error(`   DB lookup failed for article, skipping: ${err.message.split('\n')[0]}`);
+                continue;
+            }
 
             if (existing && existing.fullContent && existing.fullContent.length > 500) {
                 console.log(`   Skipping (Already in DB with content)`);
@@ -160,7 +176,7 @@ const fetchSaveNews = async (days = 1, pageSize = 40) => {
             if (result.success) {
                 for (let attempt = 1; attempt <= 2; attempt++) {
                     try {
-                        const data = await prisma.article.upsert({
+                        await prisma.article.upsert({
                             where : {url:cleanedUrl},
                             update : {
                                 curatorScore: result.score,
@@ -185,12 +201,9 @@ const fetchSaveNews = async (days = 1, pageSize = 40) => {
                         break;
 
                     } catch (err) {
-                        console.error(`   ❌ DB Save Error (attempt ${attempt}): ${err.message}`);
+                        console.error(`   DB Save Error (attempt ${attempt}): ${err.message.split('\n')[0]}`);
                         if (attempt < 2) {
-                            console.log('   Retrying after reconnect...');
-                            try { await prisma.$disconnect(); } catch (e) {}
-                            await new Promise(r => setTimeout(r, 1000));
-                            try { await prisma.$connect(); } catch (e) {}
+                            await new Promise(r => setTimeout(r, 3000));
                         }
                     }
                 }
@@ -211,6 +224,22 @@ const processArticles = async (size = 30) => {
     console.log("Looking for articles")
 
     try{
+        let dbReady = false;
+        for (let ping = 1; ping <= 5; ping++) {
+            try {
+                await prisma.$queryRaw`SELECT 1`;
+                dbReady = true;
+                break;
+            } catch (e) {
+                console.log(`DB not ready (attempt ${ping}/5): ${e.message.split('\n')[0]}`);
+                await new Promise(r => setTimeout(r, 3000));
+            }
+        }
+        if (!dbReady) {
+            console.error('Neon DB did not wake up. Aborting LLM pipeline.');
+            return 0;
+        }
+
         const candidates = await prisma.article.findMany({
             where: {
                 category: "AI",
