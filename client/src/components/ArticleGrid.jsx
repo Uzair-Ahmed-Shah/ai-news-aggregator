@@ -1,5 +1,6 @@
-import React from 'react';
-import { ArrowUpRight, Clock, ShieldCheck } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { ArrowUpRight, Clock, ShieldCheck, Heart, Bookmark } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 // import { formatDistanceToNow, differenceInCalendarDays } from 'date-fns';
 
 const categoryImages = {'Research' : 'https://drive.google.com/thumbnail?id=15ZTr66kfFjQiYLaRb--2lmVUvChaR3In&sz=s3000',
@@ -28,7 +29,36 @@ const ArticleGrid = ({ articles }) => {
 };
 
 const ArticleCard = ({ article }) => {
+  const { user, likedArticleIds, savedArticleIds, toggleLikeArticle, toggleSaveArticle } = useAuth();
   const bgImage = article.imageUrl || categoryImages[article.category]
+
+  const isLiked = likedArticleIds && likedArticleIds.includes(article.id);
+  const isSaved = savedArticleIds && savedArticleIds.includes(article.id);
+
+  const [localLikesCount, setLocalLikesCount] = useState(article.likesCount || 0);
+  const [localIsLiked, setLocalIsLiked] = useState(isLiked);
+  const [localIsSaved, setLocalIsSaved] = useState(isSaved);
+
+  useEffect(() => {
+    setLocalIsLiked(isLiked);
+    setLocalIsSaved(isSaved);
+  }, [isLiked, isSaved]);
+
+  const handleLike = async (e) => {
+    e.preventDefault();
+    if (!user) return;
+    setLocalIsLiked(!localIsLiked);
+    setLocalLikesCount(prev => localIsLiked ? Math.max(0, prev - 1) : prev + 1);
+    await toggleLikeArticle(article.id);
+  };
+
+  const handleSave = async (e) => {
+    e.preventDefault();
+    if (!user) return;
+    setLocalIsSaved(!localIsSaved);
+    await toggleSaveArticle(article.id);
+  };
+
   const getDayLabel = (dateString) => {
     if (!dateString) return "Just now";
 
@@ -91,11 +121,23 @@ const ArticleCard = ({ article }) => {
                 <span className="text-[10px] font-mono text-gray-500">Score: {article.curatorScore || 'N/A'}</span>
             </div>
             
+            {user && (
+              <div className="flex items-center gap-3 mr-auto ml-4 text-gray-400">
+                <button onClick={handleLike} className="flex items-center justify-center gap-1 hover:text-red-500 transition-colors z-10">
+                  <Heart size={14} fill={localIsLiked ? "#ef4444" : "none"} className={localIsLiked ? "text-red-500" : ""} />
+                  <span className="text-[10px] font-mono">{localLikesCount}</span>
+                </button>
+                <button onClick={handleSave} className="flex items-center justify-center hover:text-blue-500 transition-colors z-10">
+                  <Bookmark size={14} fill={localIsSaved ? "#3b82f6" : "none"} className={localIsSaved ? "text-blue-500" : ""} />
+                </button>
+              </div>
+            )}
+
             <a 
               href={article.url} 
               target="_blank" 
               rel="noreferrer"
-              className="text-white hover:text-gray-300 transition-colors flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider"
+              className="text-white hover:text-gray-300 transition-colors flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider relative z-10"
             >
               Intelligence <ArrowUpRight size={14} />
             </a>
