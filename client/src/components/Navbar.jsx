@@ -81,12 +81,12 @@ const Navbar = ({ deepDiveId }) => {
                         <div className='absolute right-0 mt-2 w-48 origin-top-right rounded-md border border-white/10 bg-[#111] py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none'>
                             <div className='px-4 py-2 text-xs text-gray-500'> Signed in as <br/> <span className='text-white font-bold'>{user.name || 'User'}</span></div>
                             <hr className='border-white/10' />
-                            <a href="#" className="flex items-center px-4 py-2 text-sm text-gray-300 hover:bg-white/5 hover:text-white">
+                            <Link to="/activity" className="flex items-center px-4 py-2 text-sm text-gray-300 hover:bg-white/5 hover:text-white">
                                 <Activity size={14} className="mr-2"/> Activity
-                            </a>
-                            <a href="#" className="flex items-center px-4 py-2 text-sm text-gray-300 hover:bg-white/5 hover:text-white">
+                            </Link>
+                            <Link to="/saved" className="flex items-center px-4 py-2 text-sm text-gray-300 hover:bg-white/5 hover:text-white">
                                 <Bookmark size={14} className="mr-2"/> Saved
-                            </a>
+                            </Link>
                             <hr className="border-white/10 my-1"/>
                             
                             

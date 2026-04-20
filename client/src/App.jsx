@@ -5,6 +5,8 @@ import WeeklyPage from './components/WeeklyPage';
 import AuthModal from './components/AuthModal';
 import Archive from './components/Archive';
 import ArchiveDetail from './components/ArchiveDetail';
+import ActivityPage from './pages/ActivityPage';
+import SavedPage from './pages/SavedPage';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 
@@ -22,6 +24,8 @@ function App() {
         <Route path="/weekly" element={<WeeklyPage/>} />
         <Route path="/archive" element={<Archive/>} />
         <Route path="/archive/:id" element={<ArchiveDetail/>} />
+        <Route path="/activity" element={<ActivityPage/>} />
+        <Route path="/saved" element={<SavedPage/>} />
      </Routes>
     </div>
     </BrowserRouter>
